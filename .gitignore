@@ -1,0 +1,10 @@
+.git/
+.tox/
+.mypy_cache/
+
+__pycache__/
+*.egg-info/
+dist/
+
+.DS_Store
+.idea/

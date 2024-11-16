@@ -1,0 +1,127 @@
+[project]
+name = 'diject'
+version = '0.0.0'
+description = 'A powerful dependency injection framework that automatically injects objects, promoting loose coupling, improving testability, and centralizing configuration for easier maintenance.'
+readme = 'README.md'
+requires-python = '>=3.10'
+license = { file = 'LICENSE' }
+keywords = ['Dependency Injection']
+authors = [
+    { name = 'Mateusz Baran' }
+]
+maintainers = [
+    { name = 'Mateusz Baran' }
+]
+classifiers = [
+    'Development Status :: 4 - Beta',
+    'Programming Language :: Python',
+    'Programming Language :: Python :: 3',
+    'Programming Language :: Python :: 3 :: Only',
+    'Programming Language :: Python :: 3.10',
+    'Operating System :: OS Independent',
+    'License :: OSI Approved :: MIT License'
+]
+
+dependencies = []
+
+[project.optional-dependencies]
+test = [
+    'Flake8-pyproject==1.2.3',
+    'black==24.3.0',
+    'flake8==7.0.0',
+    'isort==5.13.2',
+    'mypy==1.9.0',
+    'pytest-asyncio==0.23.7',
+    'pytest==8.1.1'
+]
+
+[project.urls]
+repository = 'https://github.com/mateuszbaransanok/diject'
+
+[tool.pytest.ini_options]
+norecursedirs = '.git .tox .ipynb_checkpoints .cache .mypy_cache'
+log_cli = true
+log_cli_level = 'WARNING'
+log_cli_format = '%(asctime)s [%(levelname)8s] %(message)s (%(filename)s:%(lineno)s)'
+log_cli_date_format = '%Y-%m-%d %H:%M:%S'
+asyncio_mode = 'auto'
+
+[tool.black]
+line-length = 100
+skip-string-normalization = false
+target-version = ['py310']
+include = '\.pyi?$'
+extend-exclude = '''
+/(
+     __pycache__
+    |\.mypy_cache
+    |\.pytest_cache
+    |\.tox
+    |env
+    |venv
+    |\.env
+    |.venv
+)/
+'''
+
+[tool.isort]
+line_length = 100
+profile = 'black'
+multi_line_output = 3
+
+[tool.mypy]
+disallow_untyped_defs = true
+ignore_missing_imports = true
+show_error_codes = true
+
+[tool.flake8]
+extend-ignore = [
+    'CF002',
+    'T002',
+    'W503', # conflicts with black
+    'E203'
+]
+noqa-require-code = true
+max-line-length = 100
+exclude = '''
+__pycache__
+.mypy_cache
+.pytest_cache
+.tox
+env
+venv
+.env
+.venv
+'''
+
+[tool.tox]
+legacy_tox_ini = '''
+[tox]
+skipsdist = true
+parallel = true
+envlist =
+    black
+    isort
+    flake
+    mypy
+    unittests
+
+[testenv]
+deps =
+    -e .[test]
+
+[testenv:black]
+commands = black --check --diff diject/ tests/ examples/
+
+[testenv:isort]
+commands = isort --check --diff diject/ tests/ examples/
+
+[testenv:flake]
+commands = flake8 diject/ tests/ examples/
+
+[testenv:mypy]
+commands = mypy --install-types --non-interactive --no-namespace-packages diject/ tests/ examples/
+
+[testenv:unittests]
+commands = pytest tests/unit/
+'''
