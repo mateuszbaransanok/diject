@@ -6,6 +6,9 @@ on:
   pull_request:           # Run tests on pull requests
     branches:
       - "**"              # Runs on any pull request branch
+  push:
+    branches:
+      - main              # Runs on any changes pushed to main
 
 jobs:
   static_analysis:
