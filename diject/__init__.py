@@ -21,7 +21,7 @@ __all__ = [
     "Thread",
     "Transient",
     "__version__",
-    "providable.py",
+    "providable",
     "extensions",
     "providers",
     "utils",
