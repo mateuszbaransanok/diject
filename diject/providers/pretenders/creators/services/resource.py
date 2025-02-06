@@ -53,7 +53,7 @@ class ResourceData(Generic[T]):
         return self.__start_error
 
     def is_started(self) -> bool:
-        return not isinstance(self.object, Empty)
+        return not isinstance(self.__object, Empty)
 
 
 class ResourceProvider(ServiceProvider[T], StatusProtocol, StartProtocol, ShutdownProtocol):
