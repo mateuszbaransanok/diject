@@ -3,7 +3,7 @@ name = 'diject'
 version = '0.0.0'
 description = 'A powerful dependency injection framework that automatically injects objects, promoting loose coupling, improving testability, and centralizing configuration for easier maintenance.'
 readme = 'README.md'
-requires-python = '>=3.10'
+requires-python = '>=3.11'
 license = { file = 'LICENSE' }
 keywords = ['Dependency Injection']
 authors = [
@@ -17,7 +17,7 @@ classifiers = [
     'Programming Language :: Python',
     'Programming Language :: Python :: 3',
     'Programming Language :: Python :: 3 :: Only',
-    'Programming Language :: Python :: 3.10',
+    'Programming Language :: Python :: 3.11',
     'Operating System :: OS Independent',
     'License :: OSI Approved :: MIT License'
 ]
@@ -26,13 +26,12 @@ dependencies = []
 
 [project.optional-dependencies]
 test = [
-    'Flake8-pyproject==1.2.3',
-    'black==24.3.0',
-    'flake8==7.0.0',
-    'isort==5.13.2',
-    'mypy==1.9.0',
-    'pytest-asyncio==0.23.7',
-    'pytest==8.1.1'
+    'black==25.1.0',
+    'isort==6.0.0',
+    'mypy==1.15.0',
+    'pyproject-flake8==7.0.0',
+    'pytest-asyncio==0.25.3',
+    'pytest==8.3.4'
 ]
 
 [project.urls]
@@ -49,7 +48,7 @@ asyncio_mode = 'auto'
 [tool.black]
 line-length = 100
 skip-string-normalization = false
-target-version = ['py310']
+target-version = ['py311']
 include = '\.pyi?$'
 extend-exclude = '''
 /(
@@ -117,7 +116,7 @@ commands = black --check --diff diject/ tests/ examples/
 commands = isort --check --diff diject/ tests/ examples/
 
 [testenv:flake]
-commands = flake8 diject/ tests/ examples/
+commands = pflake8 diject/ tests/ examples/
 
 [testenv:mypy]
 commands = mypy --install-types --non-interactive --no-namespace-packages diject/ tests/ examples/
