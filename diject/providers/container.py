@@ -30,13 +30,13 @@ class MetaContainer(ABCMeta):
             ):
                 attributes[key] = obj_as_provider(value)
 
-        container = super().__new__(cls, name, parents, attributes)
+        __container = super().__new__(cls, name, parents, attributes)
 
         for key, value in attributes.items():
             if isinstance(value, Provider):
                 value.__alias__ = f"{name}.{key}"
 
-        return container
+        return __container
 
 
 class Container(Provider["Container"], metaclass=MetaContainer):

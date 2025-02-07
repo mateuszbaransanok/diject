@@ -11,7 +11,7 @@ def some_function(a: str) -> str:
 factory = di.Factory[some_function](a=di.Scoped[some_function](a="scope"))
 
 
-@di.Provide
+@di.inject
 def main(
     normal: str,
     pos_dep: Annotated[str, factory],

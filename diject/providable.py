@@ -201,14 +201,6 @@ class Providable(Generic[T]):
     async def ashutdown(self) -> None:
         await self.__ashutdown(self.__provider, cache=set())
 
-    def scope(self) -> Iterator[T]:
-        with self as result:
-            yield result
-
-    async def ascope(self) -> AsyncIterator[T]:
-        async with self as result:
-            yield result
-
     def __start(self, provider: Provider[Any], cache: set[Provider[Any]]) -> None:
         for sub_name, sub_provider in self.__travers(
             provider=provider,
@@ -417,79 +409,75 @@ class ProvidableBuilder:
 
         return Providable(provider)
 
-    def __call__(self, func: Callable[..., Any]) -> Callable[..., Any]:
-        def provide_object(obj: Any, scope: Scope) -> Any:
-            if isinstance(obj, Provider):
-                return obj.__provide__(scope)
-            elif isinstance(obj, type) and issubclass(obj, Container):
-                return obj().__provide__(scope)
-            elif isinstance(obj, Providable):
-                return obj.provider.__provide__(scope)
-            else:
-                return EMPTY
 
-        def provide_arguments(
-            args: tuple[Any, ...],
-            kwargs: dict[str, Any],
-        ) -> tuple[tuple[Any, ...], dict[str, Any], Scope]:
-            scope: Scope[Any] = Scope()
-
-            signature = inspect.signature(func)
-            bound_params = signature.bind_partial(*args, **kwargs)
-
-            for param in signature.parameters.values():
-                if (
-                    get_origin(param.annotation) is Annotated
-                    and len(get_args(param.annotation)) == 2
-                ):
-                    base_type, obj = get_args(param.annotation)
-                    if (
-                        param.name not in bound_params.arguments
-                        and (value := provide_object(obj, scope)) is not EMPTY
-                    ):
-                        bound_params.arguments[param.name] = value
-
-                if (obj := bound_params.arguments.get(param.name)) and (
-                    value := provide_object(obj, scope)
-                ) is not EMPTY:
-                    bound_params.arguments[param.name] = value
-
-                if (obj := param.default) is not param.empty and (
-                    value := provide_object(obj, scope)
-                ) is not EMPTY:
-                    bound_params.arguments[param.name] = value
-
-            return bound_params.args, bound_params.kwargs, scope
-
-        @functools.wraps(func)
-        def sync_wrapper(*args: Any, **kwargs: Any) -> Any:
-            args, kwargs, scope = provide_arguments(args, kwargs)
-
-            try:
-                result = func(*args, **kwargs)
-            finally:
-                for provider, data in scope.items():
-                    provider.__reset__(data)
-
-            return result
-
-        @functools.wraps(func)
-        async def async_wrapper(*args: Any, **kwargs: Any) -> Any:
-            args, kwargs, scope = provide_arguments(args, kwargs)
-
-            try:
-                result = await func(*args, **kwargs)
-            finally:
-                await asyncio.gather(
-                    *(provider.__areset__(data) for provider, data in scope.items())
-                )
-
-            return result
-
-        if asyncio.iscoroutinefunction(func):
-            return async_wrapper
+def inject(func: Callable[..., Any]) -> Callable[..., Any]:
+    def provide_object(obj: Any, scope: Scope) -> Any:
+        if isinstance(obj, Provider):
+            return obj.__provide__(scope)
+        elif isinstance(obj, type) and issubclass(obj, Container):
+            return obj().__provide__(scope)
+        elif isinstance(obj, Providable):
+            return obj.provider.__provide__(scope)
         else:
-            return sync_wrapper
+            return EMPTY
+
+    def provide_arguments(
+        args: tuple[Any, ...],
+        kwargs: dict[str, Any],
+    ) -> tuple[tuple[Any, ...], dict[str, Any], Scope]:
+        scope: Scope[Any] = Scope()
+
+        signature = inspect.signature(func)
+        bound_params = signature.bind_partial(*args, **kwargs)
+
+        for param in signature.parameters.values():
+            if get_origin(param.annotation) is Annotated and len(get_args(param.annotation)) == 2:
+                base_type, obj = get_args(param.annotation)
+                if (
+                    param.name not in bound_params.arguments
+                    and (value := provide_object(obj, scope)) is not EMPTY
+                ):
+                    bound_params.arguments[param.name] = value
+
+            if (obj := bound_params.arguments.get(param.name)) and (
+                value := provide_object(obj, scope)
+            ) is not EMPTY:
+                bound_params.arguments[param.name] = value
+
+            if (obj := param.default) is not param.empty and (
+                value := provide_object(obj, scope)
+            ) is not EMPTY:
+                bound_params.arguments[param.name] = value
+
+        return bound_params.args, bound_params.kwargs, scope
+
+    @functools.wraps(func)
+    def sync_wrapper(*args: Any, **kwargs: Any) -> Any:
+        args, kwargs, scope = provide_arguments(args, kwargs)
+
+        try:
+            result = func(*args, **kwargs)
+        finally:
+            for provider, data in scope.items():
+                provider.__reset__(data)
+
+        return result
+
+    @functools.wraps(func)
+    async def async_wrapper(*args: Any, **kwargs: Any) -> Any:
+        args, kwargs, scope = provide_arguments(args, kwargs)
+
+        try:
+            result = await func(*args, **kwargs)
+        finally:
+            await asyncio.gather(*(provider.__areset__(data) for provider, data in scope.items()))
+
+        return result
+
+    if asyncio.iscoroutinefunction(func):
+        return async_wrapper
+    else:
+        return sync_wrapper
 
 
 Provide: Final = ProvidableBuilder()

@@ -20,3 +20,7 @@ class DIAsyncError(DIError):
 
 class DISelectorError(DIError):
     pass
+
+
+class DINameError(DIError):
+    pass

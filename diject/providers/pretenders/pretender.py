@@ -2,7 +2,6 @@ from abc import ABC
 from typing import TYPE_CHECKING, Any, TypeVar
 
 from diject.providers.provider import Provider
-from diject.utils.exceptions import DITypeError
 from diject.utils.repr import create_class_repr
 
 if TYPE_CHECKING:
@@ -35,6 +34,3 @@ class Pretender(ABC):
 class PretenderBuilder(ABC):
     def __repr__(self) -> str:
         return create_class_repr(self)
-
-    def __set__(self, instance: Any, value: Any) -> None:
-        raise DITypeError("PretenderBuilder cannot be replaced")
