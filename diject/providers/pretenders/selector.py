@@ -3,8 +3,8 @@ from contextlib import contextmanager
 from types import TracebackType
 from typing import Any, AsyncIterator, Callable, Final, Generic, Iterator, Type, TypeVar
 
+from diject.extensions.reset import ResetProtocol
 from diject.extensions.scope import Scope
-from diject.extensions.shutdown import ShutdownProtocol
 from diject.extensions.status import Status, StatusProtocol
 from diject.providers.pretenders.pretender import (
     Pretender,
@@ -22,7 +22,7 @@ T = TypeVar("T")
 LOG = logging.getLogger(__name__)
 
 
-class SelectorProvider(PretenderProvider[T], StatusProtocol, ShutdownProtocol):
+class SelectorProvider(PretenderProvider[T], StatusProtocol, ResetProtocol):
     def __init__(self, selector: Provider[str] | str, /, **providers: Provider[T] | T) -> None:
         super().__init__()
         self.__lock = Lock()
@@ -101,11 +101,11 @@ class SelectorProvider(PretenderProvider[T], StatusProtocol, ShutdownProtocol):
     def __status__(self) -> Status:
         return Status.STOPPED if self.__option is None else Status.STARTED
 
-    def __shutdown__(self) -> None:
+    def __reset__(self) -> None:
         with self.__lock:
             self.__option = None
 
-    async def __ashutdown__(self) -> None:
+    async def __areset__(self) -> None:
         async with self.__lock:
             self.__option = None
 

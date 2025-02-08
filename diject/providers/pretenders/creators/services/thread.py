@@ -1,18 +1,20 @@
 import logging
 import threading
-from typing import Any, Callable, Final, Generic, Iterator, Type, TypeVar
+from typing import Any, Callable, Final, Generic, Iterator, ParamSpec, Type, TypeVar, overload
 
+from diject.extensions.reset import ResetProtocol
 from diject.extensions.scope import Scope
-from diject.extensions.shutdown import ShutdownProtocol
 from diject.extensions.status import Status, StatusProtocol
 from diject.providers.pretenders.creators.services.service import (
-    ServicePretenderBuilder,
+    ServicePretender,
     ServiceProvider,
 )
+from diject.providers.pretenders.pretender import PretenderBuilder
 from diject.utils.exceptions import DIAsyncError
 from diject.utils.lock import Lock
 
 T = TypeVar("T")
+P = ParamSpec("P")
 
 LOG = logging.getLogger(__name__)
 
@@ -31,7 +33,7 @@ class ThreadData(Generic[T]):
         self.on_close(obj)
 
 
-class ThreadProvider(ServiceProvider[T], StatusProtocol, ShutdownProtocol):
+class ThreadProvider(ServiceProvider[T], StatusProtocol, ResetProtocol):
     def __init__(
         self,
         callable: Callable[..., Iterator[T]] | Type[T] | Callable[..., T],
@@ -68,7 +70,7 @@ class ThreadProvider(ServiceProvider[T], StatusProtocol, ShutdownProtocol):
     def __status__(self) -> Status:
         return Status.STOPPED if hasattr(self.__thread_data, "objects") else Status.STARTED
 
-    def __shutdown__(self, only_current_thread: bool = False) -> None:
+    def __reset__(self, only_current_thread: bool = False) -> None:
         with self.__lock:
             if only_current_thread:
                 if hasattr(self.__thread_data, "objects"):
@@ -77,7 +79,7 @@ class ThreadProvider(ServiceProvider[T], StatusProtocol, ShutdownProtocol):
                 del self.__thread_data
                 self.__thread_data = threading.local()
 
-    async def __ashutdown__(self, only_current_thread: bool = False) -> None:
+    async def __areset__(self, only_current_thread: bool = False) -> None:
         async with self.__lock:
             if only_current_thread:
                 if hasattr(self.__thread_data, "objects"):
@@ -87,4 +89,27 @@ class ThreadProvider(ServiceProvider[T], StatusProtocol, ShutdownProtocol):
                 self.__thread_data = threading.local()
 
 
-Thread: Final = ServicePretenderBuilder(ThreadProvider)
+class ThreadPretenderBuilder(PretenderBuilder):
+    @overload
+    def __getitem__(  # type: ignore[overload-overlap]
+        self,
+        callable: Callable[P, Iterator[T]],
+    ) -> Callable[P, T]:
+        pass
+
+    @overload
+    def __getitem__(self, callable: Type[T]) -> Type[T]:
+        pass
+
+    @overload
+    def __getitem__(self, callable: Callable[P, T]) -> Callable[P, T]:
+        pass
+
+    def __getitem__(self, callable: Any) -> Any:
+        return ServicePretender(
+            provider_cls=ThreadProvider,
+            callable=callable,
+        )
+
+
+Thread: Final = ThreadPretenderBuilder()

@@ -26,7 +26,6 @@ class MainContainer(di.Container):
 
 print("START SCRIPT".center(50, "="))
 di.Provide[MainContainer].start()
-s = di.Provide[MainContainer.thread]
 
 
 print("START LOOP".center(50, "="))

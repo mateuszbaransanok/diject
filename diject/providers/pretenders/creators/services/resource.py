@@ -1,8 +1,8 @@
 import logging
 from typing import Any, AsyncIterator, Callable, Final, Generic, Iterator, Type, TypeVar
 
+from diject.extensions.reset import ResetProtocol
 from diject.extensions.scope import Scope
-from diject.extensions.shutdown import ShutdownProtocol
 from diject.extensions.start import StartProtocol
 from diject.extensions.status import Status, StatusProtocol
 from diject.providers.pretenders.creators.services.service import (
@@ -56,7 +56,7 @@ class ResourceData(Generic[T]):
         return not isinstance(self.__object, Empty)
 
 
-class ResourceProvider(ServiceProvider[T], StatusProtocol, StartProtocol, ShutdownProtocol):
+class ResourceProvider(ServiceProvider[T], StatusProtocol, StartProtocol, ResetProtocol):
     def __init__(
         self,
         callable: (
@@ -132,7 +132,7 @@ class ResourceProvider(ServiceProvider[T], StatusProtocol, StartProtocol, Shutdo
                         instance=instance,
                     )
 
-    def __shutdown__(self) -> None:
+    def __reset__(self) -> None:
         with self.__lock:
             if self.__data.is_started():
                 LOG.debug("Shutdown %s", self)
@@ -142,7 +142,7 @@ class ResourceProvider(ServiceProvider[T], StatusProtocol, StartProtocol, Shutdo
                 finally:
                     self.__data = ResourceData()
 
-    async def __ashutdown__(self) -> None:
+    async def __areset__(self) -> None:
         async with self.__lock:
             if self.__data.is_started():
                 LOG.debug("Async shutdown %s", self)

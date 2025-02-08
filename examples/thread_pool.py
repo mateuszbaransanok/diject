@@ -20,12 +20,12 @@ print("START".center(50, "="))
 
 
 def main(i: int) -> None:
-    sleep(0 + random())
+    sleep(1 + random())
     print(f"  'thread({i})'", di.Provide[thread]())
-    sleep(0 + random())
+    sleep(1 + random())
 
 
 with ThreadPoolExecutor(3) as executor:
-    executor.map(main, (i for i in range(20)))
+    executor.map(main, (i for i in range(10)))
 
 print("END".center(50, "="))

@@ -19,8 +19,8 @@ from typing import (
     overload,
 )
 
+from diject.extensions.reset import ResetProtocol
 from diject.extensions.scope import Scope
-from diject.extensions.shutdown import ShutdownProtocol
 from diject.extensions.start import StartProtocol
 from diject.extensions.status import Status, StatusProtocol
 from diject.providers.container import Container
@@ -84,7 +84,7 @@ class Providable(Generic[T]):
             raise DIScopeError(f"{type(self).__name__}'s scope has not been created yet")
 
         for provider, data in self.__scope.items():
-            provider.__reset__(data)
+            provider.__reset_scope_data__(data)
 
         self.__scope = None
         self.__lock.release()
@@ -98,7 +98,7 @@ class Providable(Generic[T]):
         if self.__scope is None:
             raise DIScopeError(f"{type(self).__name__}'s scope has not been created yet")
 
-        await asyncio.gather(*(p.__areset__(data) for p, data in self.__scope.items()))
+        await asyncio.gather(*(p.__areset_scope_data__(data) for p, data in self.__scope.items()))
 
         self.__scope = None
         await self.__lock.arelease()
@@ -190,18 +190,58 @@ class Providable(Generic[T]):
             yield sub_name, sub_provider
 
     def start(self) -> None:
-        self.__start(self.__provider, cache=set())
+        self.__start(
+            provider=self.__provider,
+            cache=set(),
+        )
 
     async def astart(self) -> None:
-        await self.__astart(self.__provider, cache=set())
+        await self.__astart(
+            provider=self.__provider,
+            cache=set(),
+        )
 
     def shutdown(self) -> None:
-        self.__shutdown(self.__provider, cache=set())
+        self.__reset(
+            provider=self.__provider,
+            recursive=True,
+            cache=set(),
+        )
 
     async def ashutdown(self) -> None:
-        await self.__ashutdown(self.__provider, cache=set())
+        await self.__areset(
+            provider=self.__provider,
+            recursive=True,
+            cache=set(),
+        )
 
-    def __start(self, provider: Provider[Any], cache: set[Provider[Any]]) -> None:
+    def reset(self) -> None:
+        self.__reset(
+            provider=self.__provider,
+            recursive=False,
+            cache=set(),
+        )
+
+    async def areset(self) -> None:
+        await self.__areset(
+            provider=self.__provider,
+            recursive=False,
+            cache=set(),
+        )
+
+    def restart(self) -> None:
+        self.reset()
+        self.start()
+
+    async def arestart(self) -> None:
+        await self.areset()
+        await self.astart()
+
+    def __start(
+        self,
+        provider: Provider[Any],
+        cache: set[Provider[Any]],
+    ) -> None:
         for sub_name, sub_provider in self.__travers(
             provider=provider,
             types=Provider,
@@ -210,15 +250,25 @@ class Providable(Generic[T]):
             recursive=False,
             cache=cache,
         ):
-            self.__start(sub_provider, cache=cache)
+            self.__start(
+                provider=sub_provider,
+                cache=cache,
+            )
 
         if isinstance(provider, StartProtocol):
             provider.__start__()
 
-    async def __astart(self, provider: Provider[Any], cache: set[Provider[Any]]) -> None:
+    async def __astart(
+        self,
+        provider: Provider[Any],
+        cache: set[Provider[Any]],
+    ) -> None:
         await asyncio.gather(
             *[
-                self.__astart(sub_provider, cache=cache)
+                self.__astart(
+                    provider=sub_provider,
+                    cache=cache,
+                )
                 async for sub_name, sub_provider in self.__atravers(
                     provider=provider,
                     types=Provider,
@@ -233,37 +283,57 @@ class Providable(Generic[T]):
         if isinstance(provider, StartProtocol):
             await provider.__astart__()
 
-    def __shutdown(self, provider: Provider[Any], cache: set[Provider[Any]]) -> None:
-        for sub_name, sub_provider in self.__travers(
-            provider=provider,
-            types=Provider,
-            only_public=True,
-            only_selected=True,
-            recursive=False,
-            cache=cache,
-        ):
-            self.__shutdown(sub_provider, cache=cache)
-
-        if isinstance(provider, ShutdownProtocol):
-            provider.__shutdown__()
-
-    async def __ashutdown(self, provider: Provider[Any], cache: set[Provider[Any]]) -> None:
-        await asyncio.gather(
-            *[
-                self.__ashutdown(sub_provider, cache=cache)
-                async for sub_name, sub_provider in self.__atravers(
-                    provider=provider,
-                    types=Provider,
-                    only_public=True,
-                    only_selected=True,
-                    recursive=False,
+    def __reset(
+        self,
+        provider: Provider[Any],
+        recursive: bool,
+        cache: set[Provider[Any]],
+    ) -> None:
+        if recursive:
+            for sub_name, sub_provider in self.__travers(
+                provider=provider,
+                types=Provider,
+                only_public=True,
+                only_selected=True,
+                recursive=False,
+                cache=cache,
+            ):
+                self.__reset(
+                    provider=sub_provider,
+                    recursive=recursive,
                     cache=cache,
                 )
-            ]
-        )
 
-        if isinstance(provider, ShutdownProtocol):
-            await provider.__ashutdown__()
+        if isinstance(provider, ResetProtocol):
+            provider.__reset__()
+
+    async def __areset(
+        self,
+        provider: Provider[Any],
+        recursive: bool,
+        cache: set[Provider[Any]],
+    ) -> None:
+        if recursive:
+            await asyncio.gather(
+                *[
+                    self.__areset(
+                        provider=sub_provider,
+                        recursive=recursive,
+                        cache=cache,
+                    )
+                    async for sub_name, sub_provider in self.__atravers(
+                        provider=provider,
+                        types=Provider,
+                        only_public=True,
+                        only_selected=True,
+                        recursive=False,
+                        cache=cache,
+                    )
+                ]
+            )
+
+        if isinstance(provider, ResetProtocol):
+            await provider.__areset__()
 
     def __travers(
         self,
@@ -459,7 +529,7 @@ def inject(func: Callable[..., Any]) -> Callable[..., Any]:
             result = func(*args, **kwargs)
         finally:
             for provider, data in scope.items():
-                provider.__reset__(data)
+                provider.__reset_scope_data__(data)
 
         return result
 
@@ -470,7 +540,9 @@ def inject(func: Callable[..., Any]) -> Callable[..., Any]:
         try:
             result = await func(*args, **kwargs)
         finally:
-            await asyncio.gather(*(provider.__areset__(data) for provider, data in scope.items()))
+            await asyncio.gather(
+                *(provider.__areset_scope_data__(data) for provider, data in scope.items())
+            )
 
         return result
 

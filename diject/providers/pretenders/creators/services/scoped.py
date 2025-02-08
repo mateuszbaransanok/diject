@@ -73,7 +73,7 @@ class ScopedProvider(ServiceProvider[T], ScopeProtocol[ScopedData[T]]):
 
         return instance
 
-    def __reset__(self, scoped_data: ScopedData) -> None:
+    def __reset_scope_data__(self, scoped_data: ScopedData) -> None:
         if scoped_data.data is not None:
             obj, instance = scoped_data.data
             try:
@@ -81,7 +81,7 @@ class ScopedProvider(ServiceProvider[T], ScopeProtocol[ScopedData[T]]):
             finally:
                 scoped_data.data = None
 
-    async def __areset__(self, scoped_data: ScopedData) -> None:
+    async def __areset_scope_data__(self, scoped_data: ScopedData) -> None:
         if scoped_data.data is not None:
             obj, instance = scoped_data.data
             try:

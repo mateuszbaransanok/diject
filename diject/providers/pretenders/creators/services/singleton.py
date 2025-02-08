@@ -1,7 +1,7 @@
 from typing import Any, AsyncIterator, Callable, Final, Generic, Iterator, Type, TypeVar
 
+from diject.extensions.reset import ResetProtocol
 from diject.extensions.scope import Scope
-from diject.extensions.shutdown import ShutdownProtocol
 from diject.extensions.status import Status, StatusProtocol
 from diject.providers.pretenders.creators.services.service import (
     ServicePretenderBuilder,
@@ -19,7 +19,7 @@ class SingletonData(Generic[T]):
         self.instance = instance
 
 
-class SingletonProvider(ServiceProvider[T], StatusProtocol, ShutdownProtocol):
+class SingletonProvider(ServiceProvider[T], StatusProtocol, ResetProtocol):
     def __init__(
         self,
         callable: (
@@ -59,7 +59,7 @@ class SingletonProvider(ServiceProvider[T], StatusProtocol, ShutdownProtocol):
     def __status__(self) -> Status:
         return Status.STOPPED if isinstance(self.__data, Empty) else Status.STARTED
 
-    def __shutdown__(self) -> None:
+    def __reset__(self) -> None:
         with self.__lock:
             if not isinstance(self.__data, Empty):
                 try:
@@ -67,7 +67,7 @@ class SingletonProvider(ServiceProvider[T], StatusProtocol, ShutdownProtocol):
                 finally:
                     self.__data = Empty()
 
-    async def __ashutdown__(self) -> None:
+    async def __areset__(self) -> None:
         async with self.__lock:
             if not isinstance(self.__data, Empty):
                 try:
