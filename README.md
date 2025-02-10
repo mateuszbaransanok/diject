@@ -221,13 +221,13 @@ A **Resource** is eagerly instantiated and shared for the application's lifetime
 some_resource = di.Resource[some_iterator](arg="some_value")
 ```
 
-**Start the resource** before use:
+Start the resource before use:
 
 ```python
 di.Provide[some_resource].start()
 ```
 
-**Shutdown the resource** to perform cleanup with all dependencies:
+Shutdown the resource to perform cleanup with all dependencies:
 
 ```python
 di.Provide[some_resource].shutdown()
@@ -235,7 +235,7 @@ di.Provide[some_resource].shutdown()
 
 ### Scoped
 
-A **Scoped** dependency behaves like a singleton within a specific scope. Within that scope, the
+A **Scoped** provider behaves like a singleton within a specific scope. Within that scope, the
 same instance is reused.
 
 ```python
@@ -383,6 +383,11 @@ The Travers functionality allows you to iterate over all providers. Its paramete
 * **recursive**: Traverse providers recursively.
 * **only_public**: Include only public providers.
 * **only_selected**: Include only providers that have been selected.
+
+```python
+for name, provider in di.Provide[some_resource].travers():
+    pass
+```
 
 ### Status
 

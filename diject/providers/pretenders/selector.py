@@ -128,7 +128,7 @@ class SelectorOption:
         )
 
 
-class GroupSelector(Generic[T]):
+class GroupSelector:
     def __init__(self, selector: str) -> None:
         self.__selector = selector
         self.__closed = False
@@ -139,6 +139,12 @@ class GroupSelector(Generic[T]):
             raise DISelectorError("Cannot create selector outside with-statement")
 
         return self.__create_empty_selector  # type: ignore[return-value]
+
+    def __call__(self) -> Any:
+        if self.__closed:
+            raise DISelectorError("Cannot create selector outside with-statement")
+
+        return self.__create_empty_selector()
 
     @contextmanager
     def __eq__(self, option: str) -> Iterator[SelectorOption]:  # type: ignore[override]
@@ -169,7 +175,7 @@ class GroupSelector(Generic[T]):
 class SelectorPretender(Pretender, Generic[T]):
     def __init__(self, selector: str) -> None:
         self.__selector = selector
-        self.__group_selector: GroupSelector[T] | None = None
+        self.__group_selector: GroupSelector | None = None
 
     def __repr__(self) -> str:
         return create_class_repr(self, self.__selector)
@@ -177,7 +183,7 @@ class SelectorPretender(Pretender, Generic[T]):
     def __call__(self, **providers: T) -> T:
         return SelectorProvider(self.__selector, **providers)  # type: ignore[return-value]
 
-    def __enter__(self) -> GroupSelector[T]:
+    def __enter__(self) -> GroupSelector:
         if self.__group_selector is not None:
             raise DISelectorError("Group selector already created")
 
