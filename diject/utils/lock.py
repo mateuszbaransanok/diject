@@ -1,7 +1,6 @@
 import asyncio
 import threading
 from types import TracebackType
-from typing import Type
 
 
 class Lock:
@@ -14,9 +13,9 @@ class Lock:
 
     def __exit__(
         self,
-        exc_type: Type[Exception],
-        exc_val: Exception,
-        exc_tb: TracebackType,
+        exc_type: type[Exception] | None,
+        exc_val: Exception | None,
+        exc_tb: TracebackType | None,
     ) -> None:
         self.release()
 
@@ -25,9 +24,9 @@ class Lock:
 
     async def __aexit__(
         self,
-        exc_type: Type[Exception],
-        exc_val: Exception,
-        exc_tb: TracebackType,
+        exc_type: type[Exception] | None,
+        exc_val: Exception | None,
+        exc_tb: TracebackType | None,
     ) -> None:
         await self.arelease()
 

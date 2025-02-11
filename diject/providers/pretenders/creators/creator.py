@@ -1,6 +1,6 @@
 import asyncio
 from abc import ABC
-from typing import Any, Callable, Generic, Iterator, ParamSpec, Type, TypeVar, overload
+from typing import Any, Callable, Generic, Iterator, ParamSpec, TypeVar, overload
 
 from diject.extensions.scope import Scope
 from diject.providers.pretenders.pretender import Pretender, PretenderBuilder, PretenderProvider
@@ -15,7 +15,7 @@ P = ParamSpec("P")
 
 
 class CreatorProvider(PretenderProvider[T], ABC):
-    def __init__(self, callable: Type[T] | Callable[..., T], /, *args: Any, **kwargs: Any) -> None:
+    def __init__(self, callable: type[T] | Callable[..., T], /, *args: Any, **kwargs: Any) -> None:
         super().__init__()
 
         if isinstance(callable, Provider):
@@ -26,7 +26,7 @@ class CreatorProvider(PretenderProvider[T], ABC):
         self.__kwargs = {kw: any_as_provider(arg) for kw, arg in kwargs.items()}
 
     @property
-    def __callable__(self) -> Type[T] | Callable[..., T]:
+    def __callable__(self) -> type[T] | Callable[..., T]:
         return self.__callable
 
     @property
@@ -70,8 +70,8 @@ class CreatorProvider(PretenderProvider[T], ABC):
 class CreatorPretender(Pretender, Generic[T, TCreatorProvider]):
     def __init__(
         self,
-        provider_cls: Type[TCreatorProvider],
-        callable: Type[T] | Callable[..., T],
+        provider_cls: type[TCreatorProvider],
+        callable: type[T] | Callable[..., T],
     ) -> None:
         self.__provider_cls = provider_cls
         self.__callable = callable
@@ -84,14 +84,14 @@ class CreatorPretender(Pretender, Generic[T, TCreatorProvider]):
 
 
 class CreatorPretenderBuilder(PretenderBuilder, Generic[TCreatorProvider]):
-    def __init__(self, provider_cls: Type[TCreatorProvider]) -> None:
+    def __init__(self, provider_cls: type[TCreatorProvider]) -> None:
         self.__provider_cls = provider_cls
 
     def __repr__(self) -> str:
         return create_class_repr(self, self.__provider_cls)
 
     @overload
-    def __getitem__(self, callable: Type[T]) -> Type[T]:
+    def __getitem__(self, callable: type[T]) -> type[T]:
         pass
 
     @overload

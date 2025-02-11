@@ -1,4 +1,4 @@
-from typing import Any, AsyncIterator, Callable, Final, Generic, Iterator, Type, TypeVar
+from typing import Any, AsyncIterator, Callable, Final, Generic, Iterator, TypeVar
 
 from diject.extensions.reset import ResetProtocol
 from diject.extensions.scope import Scope
@@ -25,7 +25,7 @@ class SingletonProvider(ServiceProvider[T], StatusProtocol, ResetProtocol):
         callable: (
             Callable[..., Iterator[T]]
             | Callable[..., AsyncIterator[T]]
-            | Type[T]
+            | type[T]
             | Callable[..., T]
         ),
         /,

@@ -1,6 +1,6 @@
 import asyncio
 import logging
-from typing import Any, AsyncIterator, Callable, Final, Generic, Iterator, Type, TypeVar
+from typing import Any, AsyncIterator, Callable, Final, Generic, Iterator, TypeVar
 
 from diject.extensions.scope import Scope, ScopeProtocol
 from diject.providers.pretenders.creators.services.service import (
@@ -27,7 +27,7 @@ class TransientProvider(ServiceProvider[T], ScopeProtocol[TransientData]):
         callable: (
             Callable[..., Iterator[T]]
             | Callable[..., AsyncIterator[T]]
-            | Type[T]
+            | type[T]
             | Callable[..., T]
         ),
         /,

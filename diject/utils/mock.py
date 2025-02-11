@@ -1,7 +1,7 @@
 import asyncio
 import functools
 from types import TracebackType
-from typing import Any, Callable, Final, Generic, Type, TypeVar, overload
+from typing import Any, Callable, Final, Generic, TypeVar, overload
 from unittest import mock
 
 from diject.providers.container import Container
@@ -67,7 +67,7 @@ class ProviderMock:
 
     def __exit__(
         self,
-        exc_type: Type[BaseException] | None,
+        exc_type: type[BaseException] | None,
         exc_val: BaseException | None,
         exc_tb: TracebackType | None,
     ) -> None:
@@ -121,7 +121,7 @@ class ProviderMockBuilder:
     @overload
     def __getitem__(
         self,
-        provider: Type[TContainer] | tuple[Type[TContainer], str],
+        provider: type[TContainer] | tuple[type[TContainer], str],
     ) -> ProviderMockPartial[T]:
         pass
 

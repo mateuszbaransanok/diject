@@ -7,7 +7,6 @@ from typing import (
     Generic,
     Iterator,
     ParamSpec,
-    Type,
     TypeVar,
     overload,
 )
@@ -31,7 +30,7 @@ class ServiceProvider(CreatorProvider[T], ABC):
         callable: (
             Callable[..., Iterator[T]]
             | Callable[..., AsyncIterator[T]]
-            | Type[T]
+            | type[T]
             | Callable[..., T]
         ),
         /,
@@ -119,11 +118,11 @@ class ServiceProvider(CreatorProvider[T], ABC):
 class ServicePretender(Pretender, Generic[T, TServiceProvider]):
     def __init__(
         self,
-        provider_cls: Type[TServiceProvider],
+        provider_cls: type[TServiceProvider],
         callable: (
             Callable[..., Iterator[T]]
             | Callable[..., AsyncIterator[T]]
-            | Type[T]
+            | type[T]
             | Callable[..., T]
         ),
     ) -> None:
@@ -138,7 +137,7 @@ class ServicePretender(Pretender, Generic[T, TServiceProvider]):
 
 
 class ServicePretenderBuilder(PretenderBuilder, Generic[TServiceProvider]):
-    def __init__(self, provider_cls: Type[TServiceProvider]) -> None:
+    def __init__(self, provider_cls: type[TServiceProvider]) -> None:
         self.__provider_cls = provider_cls
 
     def __repr__(self) -> str:
@@ -152,7 +151,7 @@ class ServicePretenderBuilder(PretenderBuilder, Generic[TServiceProvider]):
         pass
 
     @overload
-    def __getitem__(self, callable: Type[T]) -> Type[T]:
+    def __getitem__(self, callable: type[T]) -> type[T]:
         pass
 
     @overload

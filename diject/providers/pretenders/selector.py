@@ -1,7 +1,7 @@
 import logging
 from contextlib import contextmanager
 from types import TracebackType
-from typing import Any, AsyncIterator, Callable, Final, Generic, Iterator, Type, TypeVar
+from typing import Any, AsyncIterator, Callable, Final, Generic, Iterator, TypeVar
 
 from diject.extensions.reset import ResetProtocol
 from diject.extensions.scope import Scope
@@ -134,7 +134,7 @@ class GroupSelector:
         self.__closed = False
         self.__available_selectors: set[SelectorProvider[Any]] = set()
 
-    def __getitem__(self, cls: Type[T]) -> Callable[[], T]:
+    def __getitem__(self, cls: Callable[..., T]) -> Callable[[], T]:
         if self.__closed:
             raise DISelectorError("Cannot create selector outside with-statement")
 
@@ -193,7 +193,7 @@ class SelectorPretender(Pretender, Generic[T]):
 
     def __exit__(
         self,
-        exc_type: Type[BaseException] | None,
+        exc_type: type[BaseException] | None,
         exc_val: BaseException | None,
         exc_tb: TracebackType | None,
     ) -> None:

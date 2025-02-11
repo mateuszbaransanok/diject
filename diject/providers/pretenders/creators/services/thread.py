@@ -1,6 +1,6 @@
 import logging
 import threading
-from typing import Any, Callable, Final, Generic, Iterator, ParamSpec, Type, TypeVar, overload
+from typing import Any, Callable, Final, Generic, Iterator, ParamSpec, TypeVar, overload
 
 from diject.extensions.reset import ResetProtocol
 from diject.extensions.scope import Scope
@@ -36,7 +36,7 @@ class ThreadData(Generic[T]):
 class ThreadProvider(ServiceProvider[T], StatusProtocol, ResetProtocol):
     def __init__(
         self,
-        callable: Callable[..., Iterator[T]] | Type[T] | Callable[..., T],
+        callable: Callable[..., Iterator[T]] | type[T] | Callable[..., T],
         /,
         *args: Any,
         **kwargs: Any,
@@ -98,7 +98,7 @@ class ThreadPretenderBuilder(PretenderBuilder):
         pass
 
     @overload
-    def __getitem__(self, callable: Type[T]) -> Type[T]:
+    def __getitem__(self, callable: type[T]) -> type[T]:
         pass
 
     @overload

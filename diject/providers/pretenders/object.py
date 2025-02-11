@@ -1,4 +1,4 @@
-from typing import Any, Final, Generic, Iterator, Type, TypeVar
+from typing import Any, Callable, Final, Generic, Iterator, TypeVar
 
 from diject.extensions.scope import Scope
 from diject.providers.pretenders.pretender import Pretender, PretenderBuilder, PretenderProvider
@@ -27,19 +27,13 @@ class ObjectProvider(PretenderProvider[T]):
 
 
 class ObjectPretender(Pretender, Generic[T]):
-    def __init__(self, object_type: Type[T]) -> None:
-        self.__object_type = object_type
-
-    def __repr__(self) -> str:
-        return create_class_repr(self, self.__object_type)
-
     def __call__(self, obj: T) -> T:
         return ObjectProvider(obj)  # type: ignore[return-value]
 
 
 class ObjectPretenderBuilder(PretenderBuilder):
-    def __getitem__(self, object_type: Type[T]) -> ObjectPretender[T]:
-        return ObjectPretender(object_type)
+    def __getitem__(self, object_type: Callable[..., T]) -> ObjectPretender[T]:
+        return ObjectPretender()
 
     def __call__(self, obj: T) -> T:
         return ObjectProvider(obj)  # type: ignore[return-value]

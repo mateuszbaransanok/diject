@@ -11,7 +11,6 @@ from typing import (
     Generator,
     Generic,
     Iterator,
-    Type,
     TypeVar,
     cast,
     get_args,
@@ -76,7 +75,7 @@ class Providable(Generic[T]):
 
     def __exit__(
         self,
-        exc_type: Type[BaseException] | None,
+        exc_type: type[BaseException] | None,
         exc_val: BaseException | None,
         exc_tb: TracebackType | None,
     ) -> None:
@@ -91,7 +90,7 @@ class Providable(Generic[T]):
 
     async def __aexit__(
         self,
-        exc_type: Type[BaseException] | None,
+        exc_type: type[BaseException] | None,
         exc_val: BaseException | None,
         exc_tb: TracebackType | None,
     ) -> None:
@@ -115,7 +114,7 @@ class Providable(Generic[T]):
     @overload
     def travers(
         self,
-        types: Type[TProvider] | tuple[Type[TProvider], ...],
+        types: type[TProvider] | tuple[type[TProvider], ...],
         *,
         recursive: bool = False,
         only_public: bool = False,
@@ -135,7 +134,7 @@ class Providable(Generic[T]):
 
     def travers(
         self,
-        types: Type[TProvider] | tuple[Type[TProvider], ...] | None = None,
+        types: type[TProvider] | tuple[type[TProvider], ...] | None = None,
         *,
         recursive: bool = False,
         only_public: bool = False,
@@ -143,7 +142,7 @@ class Providable(Generic[T]):
     ) -> Any:
         yield from self.__travers(
             provider=self.__provider,
-            types=types or cast(Type[TProvider], Provider),
+            types=types or cast(type[TProvider], Provider),
             recursive=recursive,
             only_public=only_public,
             only_selected=only_selected,
@@ -153,7 +152,7 @@ class Providable(Generic[T]):
     @overload
     async def atravers(
         self,
-        types: Type[TProvider] | tuple[Type[TProvider], ...],
+        types: type[TProvider] | tuple[type[TProvider], ...],
         *,
         recursive: bool = False,
         only_public: bool = False,
@@ -173,7 +172,7 @@ class Providable(Generic[T]):
 
     async def atravers(
         self,
-        types: Type[TProvider] | tuple[Type[TProvider], ...] | None = None,
+        types: type[TProvider] | tuple[type[TProvider], ...] | None = None,
         *,
         recursive: bool = False,
         only_public: bool = False,
@@ -181,7 +180,7 @@ class Providable(Generic[T]):
     ) -> Any:
         async for sub_name, sub_provider in self.__atravers(
             provider=self.__provider,
-            types=types or cast(Type[TProvider], Provider),
+            types=types or cast(type[TProvider], Provider),
             recursive=recursive,
             only_public=only_public,
             only_selected=only_selected,
@@ -338,7 +337,7 @@ class Providable(Generic[T]):
     def __travers(
         self,
         provider: Provider[Any],
-        types: Type[TProvider] | tuple[Type[TProvider], ...],
+        types: type[TProvider] | tuple[type[TProvider], ...],
         recursive: bool,
         only_public: bool,
         only_selected: bool,
@@ -371,7 +370,7 @@ class Providable(Generic[T]):
     async def __atravers(
         self,
         provider: Provider[Any],
-        types: Type[TProvider] | tuple[Type[TProvider], ...],
+        types: type[TProvider] | tuple[type[TProvider], ...],
         recursive: bool,
         only_public: bool,
         only_selected: bool,
@@ -407,7 +406,7 @@ class Providable(Generic[T]):
         self,
         name: str,
         provider: Provider[Any],
-        types: Type[TProvider] | tuple[Type[TProvider], ...],
+        types: type[TProvider] | tuple[type[TProvider], ...],
         recursive: bool,
         only_public: bool,
         only_selected: bool,
@@ -433,7 +432,7 @@ class Providable(Generic[T]):
         self,
         name: str,
         provider: Provider[Any],
-        types: Type[TProvider] | tuple[Type[TProvider], ...],
+        types: type[TProvider] | tuple[type[TProvider], ...],
         recursive: bool,
         only_public: bool,
         only_selected: bool,
@@ -462,7 +461,7 @@ class ProvidableBuilder:
         return create_class_repr(self)
 
     @overload
-    def __getitem__(self, provider: Type[TContainer]) -> Providable[TContainer]:
+    def __getitem__(self, provider: type[TContainer]) -> Providable[TContainer]:
         pass
 
     @overload
