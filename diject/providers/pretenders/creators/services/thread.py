@@ -54,7 +54,7 @@ class ThreadProvider(ServiceProvider[T], StatusProtocol, ResetProtocol):
             try:
                 return self.__provide()
             except DIAsyncError:
-                LOG.critical(_msg := f"'{self}' cannot provide asynchronous services")
+                LOG.error(_msg := f"'{self}' cannot provide asynchronous services")
                 raise DIAsyncError(_msg)
 
     def __provide(self) -> T:

@@ -65,7 +65,7 @@ class TransientProvider(ServiceProvider[T], ScopeProtocol[TransientData]):
 
         return instance
 
-    def __reset_scope_data__(self, transient_data: TransientData) -> None:
+    def __close__(self, transient_data: TransientData) -> None:
         with transient_data.lock:
             try:
                 for obj, instance in transient_data.data:
@@ -76,7 +76,7 @@ class TransientProvider(ServiceProvider[T], ScopeProtocol[TransientData]):
             finally:
                 transient_data.data.clear()
 
-    async def __areset_scope_data__(self, transient_data: TransientData) -> None:
+    async def __aclose__(self, transient_data: TransientData) -> None:
         async with transient_data.lock:
             try:
                 await asyncio.gather(

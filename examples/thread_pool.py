@@ -20,9 +20,9 @@ print("START".center(50, "="))
 
 
 def main(i: int) -> None:
-    sleep(1 + random())
+    sleep(random())
     print(f"  'thread({i})'", di.Provide[thread]())
-    sleep(1 + random())
+    sleep(random())
 
 
 with ThreadPoolExecutor(3) as executor:

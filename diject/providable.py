@@ -83,7 +83,7 @@ class Providable(Generic[T]):
             raise DIScopeError(f"{type(self).__name__}'s scope has not been created yet")
 
         for provider, data in self.__scope.items():
-            provider.__reset_scope_data__(data)
+            provider.__close__(data)
 
         self.__scope = None
         self.__lock.release()
@@ -97,7 +97,7 @@ class Providable(Generic[T]):
         if self.__scope is None:
             raise DIScopeError(f"{type(self).__name__}'s scope has not been created yet")
 
-        await asyncio.gather(*(p.__areset_scope_data__(data) for p, data in self.__scope.items()))
+        await asyncio.gather(*(p.__aclose__(data) for p, data in self.__scope.items()))
 
         self.__scope = None
         await self.__lock.arelease()
@@ -528,7 +528,7 @@ def inject(func: Callable[..., Any]) -> Callable[..., Any]:
             result = func(*args, **kwargs)
         finally:
             for provider, data in scope.items():
-                provider.__reset_scope_data__(data)
+                provider.__close__(data)
 
         return result
 
@@ -539,9 +539,7 @@ def inject(func: Callable[..., Any]) -> Callable[..., Any]:
         try:
             result = await func(*args, **kwargs)
         finally:
-            await asyncio.gather(
-                *(provider.__areset_scope_data__(data) for provider, data in scope.items())
-            )
+            await asyncio.gather(*(provider.__aclose__(data) for provider, data in scope.items()))
 
         return result
 

@@ -24,3 +24,7 @@ class DISelectorError(DIError):
 
 class DINameError(DIError):
     pass
+
+
+class DIEmptyObjectError(DIError):
+    pass

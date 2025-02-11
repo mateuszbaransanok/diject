@@ -1,12 +1,34 @@
 import types
+import warnings
 from abc import ABCMeta
 from typing import Any, Iterator, TypeVar
 
 from diject.extensions.scope import Scope
+from diject.providers.pretenders.object import ObjectProvider
 from diject.providers.provider import Provider
 from diject.utils.convert import obj_as_provider
 
 TProvider = TypeVar("TProvider", bound=Provider[Any])
+
+
+def _as_provider(name: str, key: str, value: Any) -> Any:
+    if not (
+        key.startswith("__")
+        or isinstance(value, (classmethod, staticmethod, property))
+        or (
+            isinstance(value, types.FunctionType)
+            and value.__qualname__.startswith(f"{name}.")
+            and not value.__qualname__.startswith(f"{name}.<lambda>")
+        )
+        or isinstance(value, Provider)
+        or (isinstance(value, type) and issubclass(value, Container))
+    ):
+        value = obj_as_provider(value)
+
+    if isinstance(value, Provider):
+        value.__alias__ = f"{name}.{key}"
+
+    return value
 
 
 class MetaContainer(ABCMeta):
@@ -16,27 +38,29 @@ class MetaContainer(ABCMeta):
         parents: tuple[type, ...],
         attributes: dict[str, Any],
     ) -> "MetaContainer":
-        for key, value in attributes.items():
-            if not (
-                key.startswith("__")
-                or isinstance(value, (classmethod, staticmethod, property))
-                or (
-                    isinstance(value, types.FunctionType)
-                    and value.__qualname__.startswith(f"{name}.")
-                    and not value.__qualname__.startswith(f"{name}.<lambda>")
+        attributes = {key: _as_provider(name, key, value) for key, value in attributes.items()}
+        return super().__new__(cls, name, parents, attributes)
+
+    def __setattr__(cls, key: str, value: Any) -> None:
+        if hasattr(cls, key):
+            obj = getattr(cls, key)
+            if isinstance(obj, ObjectProvider):
+                obj.__object__ = value
+                return
+            elif isinstance(obj, Provider):
+                warnings.warn(
+                    "Do not change already defined provider (except `di.Object`), "
+                    "because this can lead to unpredictable behavior. "
+                    "If you want to replace this provider for testing purposes, "
+                    "use `di.Mock` or `di.patch`."
                 )
-                or isinstance(value, Provider)
-                or (isinstance(value, type) and issubclass(value, Container))
-            ):
-                attributes[key] = obj_as_provider(value)
+        elif isinstance(value, Provider):
+            warnings.warn(
+                "All providers should be defined in the container body, "
+                "no new providers should be defined dynamically."
+            )
 
-        __container = super().__new__(cls, name, parents, attributes)
-
-        for key, value in attributes.items():
-            if isinstance(value, Provider):
-                value.__alias__ = f"{name}.{key}"
-
-        return __container
+        super().__setattr__(key, value)
 
 
 class Container(Provider["Container"], metaclass=MetaContainer):
@@ -58,10 +82,28 @@ class Container(Provider["Container"], metaclass=MetaContainer):
                 return obj().__provide__(self.__scope)
         return obj
 
+    def __setattr__(self, key: str, value: Any) -> None:
+        if hasattr(self, key):
+            if isinstance(getattr(type(self), key, None), Provider):
+                warnings.warn(
+                    "Do not change already defined provider inside Container instance, "
+                    "because this can lead to unpredictable behavior. "
+                    "If you want to replace this provider for testing purposes, "
+                    "use `di.Mock` or `di.patch`."
+                )
+        elif isinstance(value, Provider):
+            warnings.warn(
+                "All providers should be defined in the container body, "
+                "no new providers should be defined dynamically."
+            )
+
+        super().__setattr__(key, value)
+
     def __travers__(self) -> Iterator[tuple[str, Provider[Any]]]:
-        for name in list(vars(type(self))):
+        container = type(self)
+        for name in list(vars(container)):
             if not name.startswith("__"):
-                value = getattr(self, name)
+                value = getattr(container, name)
                 if isinstance(value, Provider):
                     yield name, value
                 elif isinstance(value, type) and issubclass(value, Container):

@@ -5,10 +5,10 @@ T = TypeVar("T", contravariant=True)
 
 @runtime_checkable
 class ScopeProtocol(Protocol[T]):
-    def __reset_scope_data__(self, data: T) -> None:
+    def __close__(self, data: T) -> None:
         pass
 
-    async def __areset_scope_data__(self, data: T) -> None:
+    async def __aclose__(self, data: T) -> None:
         pass
 
 

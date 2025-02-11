@@ -54,7 +54,13 @@ class SelectorProvider(PretenderProvider[T], StatusProtocol, ResetProtocol):
                 self.__option = self.__selector.__provide__()
                 LOG.debug("Select %s[%s]", self.__alias__, self.__option)
 
-            return self.__providers[self.__option]
+            try:
+                return self.__providers[self.__option]
+            except KeyError:
+                raise DISelectorError(
+                    f"Invalid option '{self.__option}'. "
+                    f"Available options for {self}: {', '.join(self.__providers)}"
+                )
 
     async def __aselected__(self) -> Provider[T]:
         async with self.__lock:
@@ -62,7 +68,13 @@ class SelectorProvider(PretenderProvider[T], StatusProtocol, ResetProtocol):
                 self.__option = await self.__selector.__aprovide__()
                 LOG.debug("Async select %s[%s]", self.__alias__, self.__option)
 
-            return self.__providers[self.__option]
+            try:
+                return self.__providers[self.__option]
+            except KeyError:
+                raise DISelectorError(
+                    f"Invalid option '{self.__option}'. "
+                    f"Available options for {self}: {', '.join(self.__providers)}"
+                )
 
     def __travers__(
         self,
