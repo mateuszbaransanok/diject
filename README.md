@@ -131,7 +131,7 @@ class MainContainer(di.Container):  # <-- container for configuration
         uri=os.getenv("DATABASE_URI"),
     )
 
-    service = di.Factory[Service](  # <-- creates new instance for each call
+    service = di.Transient[Service](  # <-- creates new instance for each call
         db=database,  # <-- injecting always the same database instance
     )
 
@@ -185,12 +185,12 @@ def some_iterator(arg: str) -> Iterator[str]:
 
 Creators are responsible for creating new instances whenever a dependency is requested.
 
-### Factory
+### Transient
 
-A **Factory** creates a new instance on every request.
+A **Transient** creates a new instance on every request.
 
 ```python
-some_factory = di.Factory[some_function](arg="some_value")
+some_transient = di.Transient[some_function](arg="some_value")
 ```
 
 ## Services
@@ -262,7 +262,7 @@ with di.Provide[scoped_provider] as some_instance:
 ### Transient
 
 A **Transient** dependency is similar to a scoped dependency but creates a new instance every time
-it is requested—behaving like a factory.
+it is requested—behaving like a transient.
 
 ```python
 transient_provider = di.Transient[some_iterator](arg="some_value")
@@ -292,8 +292,8 @@ For example, to choose a repository implementation based on an environment varia
 
 ```python
 repository = di.Selector[os.getenv("DATABASE")](
-    in_memory=di.Factory[InMemoryRepository](),
-    mysql=di.Factory[MySqlRepository](),
+    in_memory=di.Transient[InMemoryRepository](),
+    mysql=di.Transient[MySqlRepository](),
 )
 ```
 
@@ -305,12 +305,12 @@ with di.Selector[os.getenv("DATABASE")] as Selector:
     book_repository = Selector[BookRepository]()
 
 with Selector == "in_memory" as Option:
-    Option[user_repository] = di.Factory[InMemoryUserRepository]()
-    Option[book_repository] = di.Factory[InMemoryBookRepository]()
+    Option[user_repository] = di.Transient[InMemoryUserRepository]()
+    Option[book_repository] = di.Transient[InMemoryBookRepository]()
 
 with Selector == "mysql" as Option:
-    Option[user_repository] = di.Factory[MySqlUserRepository]()
-    Option[book_repository] = di.Factory[MySqlBookRepository]()
+    Option[user_repository] = di.Transient[MySqlUserRepository]()
+    Option[book_repository] = di.Transient[MySqlBookRepository]()
 ```
 
 ## Container
@@ -319,7 +319,7 @@ Containers group related dependencies together. They are defined by subclassing 
 
 ```python
 class MainContainer(di.Container):
-    service = di.Factory[Service]()
+    service = di.Transient[Service]()
 ```
 
 You can inject an entire container so that its attributes are automatically
@@ -339,10 +339,10 @@ This means you can access attributes or call them directly,
 and the actual object is instantiated lazily on request.
 
 ```python
-factory = di.Factory[SomeClass]()
+transient = di.Transient[SomeClass]()
 
 # Access an attribute (or call a method) on the provided instance:
-some_value = di.Provide[factory.get_value()]()
+some_value = di.Provide[transient.get_value()]()
 ```
 
 # Providable
@@ -395,7 +395,7 @@ You can retrieve the status of a Resource to determine whether it has started, s
 or if an error occurred during startup:
 
 ```python
-di.Provide[some_resource].status()
+di.Provide[some_resource].status
 ```
 
 ### Get provider

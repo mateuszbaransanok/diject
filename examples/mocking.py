@@ -16,23 +16,28 @@ class MainContainer(di.Container):
         uri="db://production",
     )
 
-    service = di.Factory[Service](
+    service = di.Transient[Service](
         db=database,
     )
 
 
+@di.inject
+def production_function(service: Service = MainContainer.service) -> str:
+    return service.db.uri
+
+
 @di.patch(MainContainer.database, return_value=Database(uri="db://test_patch"))
-def patched_test_function() -> str:
-    return di.Provide[MainContainer.service]().db.uri
+def patched_dec_test_function() -> str:
+    return production_function()
 
 
-print("START".center(50, "="))
-print("  before       >", di.Provide[MainContainer.service]().db.uri)
-print("  patch        >", patched_test_function())
-print("  after patch  >", di.Provide[MainContainer.service]().db.uri)
+def patched_ctx_test_function() -> str:
+    with di.patch(MainContainer.database, return_value=Database(uri="db://test_patch")):
+        return production_function()
 
-with di.Mock[MainContainer.database](return_value=Database(uri="db://test_mock")):
-    print("  mock         >", di.Provide[MainContainer.service]().db.uri)
 
-print("  after mock   >", di.Provide[MainContainer.service]().db.uri)
-print("END".center(50, "="))
+print("  production   >", production_function())
+print("  patch dec    >", patched_dec_test_function())
+print("  production   >", production_function())
+print("  patch ctx    >", patched_ctx_test_function())
+print("  production   >", production_function())
