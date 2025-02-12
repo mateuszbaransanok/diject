@@ -130,16 +130,13 @@ class SelectorOption:
 
     def __setitem__(self, selector: Any, provider: Any) -> None:
         if self.__closed:
-            raise DISelectorError("Cannot set selector's option outside context manager")
+            raise DISelectorError("Cannot set selector option outside context manager")
 
         if not isinstance(selector, SelectorProvider):
             raise DITypeError("Option can be set only for SelectorProvider instance")
 
         if selector not in self.__available_selectors:
-            raise DISelectorError(
-                "Option can be set only for single group of selectors: "
-                f"{', '.join(selector.__alias__ for selector in self.__available_selectors)}"
-            )
+            raise DISelectorError("Given selector is not defined in this selector group")
 
         selector.__setoption__(
             option=self.__option,
@@ -180,16 +177,11 @@ class GroupSelector:
         finally:
             selector_option.__close__()
 
-            missing_selectors = []
             for selector in self.__available_selectors:
                 if option not in selector.__getoptions__():
-                    missing_selectors.append(selector)
-
-            if missing_selectors:
-                raise DISelectorError(
-                    f"Option '{option}' do not set following selectors: "
-                    f"{', '.join(selector.__alias__ for selector in missing_selectors)}"
-                )
+                    raise DISelectorError(
+                        f"At least one selector within group is not setup with option '{option}'",
+                    )
 
     def __close__(self) -> None:
         self.__closed = True
