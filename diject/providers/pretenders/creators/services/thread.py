@@ -1,6 +1,6 @@
 import logging
 import threading
-from typing import Any, Callable, Final, Generic, Iterator, ParamSpec, TypeVar, overload
+from typing import Any, Callable, Generic, Iterator, ParamSpec, TypeVar, overload
 
 from diject.extensions.reset import ResetProtocol
 from diject.extensions.scope import Scope
@@ -110,6 +110,3 @@ class ThreadPretenderBuilder(PretenderBuilder):
             provider_cls=ThreadProvider,
             callable=callable,
         )
-
-
-Thread: Final = ThreadPretenderBuilder()

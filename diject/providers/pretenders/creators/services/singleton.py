@@ -1,10 +1,9 @@
-from typing import Any, AsyncIterator, Callable, Final, Generic, Iterator, TypeVar
+from typing import Any, AsyncIterator, Callable, Generic, Iterator, TypeVar
 
 from diject.extensions.reset import ResetProtocol
 from diject.extensions.scope import Scope
 from diject.extensions.status import Status, StatusProtocol
 from diject.providers.pretenders.creators.services.service import (
-    ServicePretenderBuilder,
     ServiceProvider,
 )
 from diject.utils.empty import Empty
@@ -74,6 +73,3 @@ class SingletonProvider(ServiceProvider[T], StatusProtocol, ResetProtocol):
                     await self.__aclose_object__(self.__data.object)
                 finally:
                     self.__data = Empty()
-
-
-Singleton: Final = ServicePretenderBuilder(SingletonProvider)

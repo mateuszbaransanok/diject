@@ -1,7 +1,7 @@
 import logging
 from contextlib import contextmanager
 from types import TracebackType
-from typing import Any, AsyncIterator, Callable, Final, Generic, Iterator, TypeVar
+from typing import Any, AsyncIterator, Callable, Generic, Iterator, TypeVar
 
 from diject.extensions.reset import ResetProtocol
 from diject.extensions.scope import Scope
@@ -126,18 +126,28 @@ class SelectorOption:
     def __init__(self, option: str, available_selectors: set[SelectorProvider[Any]]) -> None:
         self.__option = option
         self.__available_selectors = available_selectors
+        self.__closed = False
 
     def __setitem__(self, selector: Any, provider: Any) -> None:
+        if self.__closed:
+            raise DISelectorError("Cannot set selector's option outside context manager")
+
         if not isinstance(selector, SelectorProvider):
-            raise DITypeError("Group selector have to be SelectorProvider instance")
+            raise DITypeError("Option can be set only for SelectorProvider instance")
 
         if selector not in self.__available_selectors:
-            raise DISelectorError("Cannot set options beyond those defined by group selector")
+            raise DISelectorError(
+                "Option can be set only for single group of selectors: "
+                f"{', '.join(selector.__alias__ for selector in self.__available_selectors)}"
+            )
 
         selector.__setoption__(
             option=self.__option,
             provider=provider,
         )
+
+    def __close__(self) -> None:
+        self.__closed = True
 
 
 class GroupSelector:
@@ -146,39 +156,48 @@ class GroupSelector:
         self.__closed = False
         self.__available_selectors: set[SelectorProvider[Any]] = set()
 
-    def __getitem__(self, cls: Callable[..., T]) -> Callable[[], T]:
-        if self.__closed:
-            raise DISelectorError("Cannot create selector outside with-statement")
-
+    def __getitem__(self, selector_type: Callable[..., T]) -> Callable[[], T]:
         return self.__create_empty_selector  # type: ignore[return-value]
 
     def __call__(self) -> Any:
-        if self.__closed:
-            raise DISelectorError("Cannot create selector outside with-statement")
-
         return self.__create_empty_selector()
 
     @contextmanager
     def __eq__(self, option: str) -> Iterator[SelectorOption]:  # type: ignore[override]
         if not self.__closed:
-            raise DISelectorError("Cannot create selector options inside with-statement")
+            raise DISelectorError("Cannot create SelectorOption inside selector context manager")
 
         if not isinstance(option, str):
-            raise DITypeError("Option value have to be string")
+            raise DITypeError("Option value have to be a string")
 
-        yield SelectorOption(
+        selector_option = SelectorOption(
             option=option,
             available_selectors=self.__available_selectors,
         )
 
-        for selector in self.__available_selectors:
-            if option not in selector.__getoptions__():
-                raise DISelectorError(f"At least one selector is not setup with option '{option}'")
+        try:
+            yield selector_option
+        finally:
+            selector_option.__close__()
 
-    def close(self) -> None:
+            missing_selectors = []
+            for selector in self.__available_selectors:
+                if option not in selector.__getoptions__():
+                    missing_selectors.append(selector)
+
+            if missing_selectors:
+                raise DISelectorError(
+                    f"Option '{option}' do not set following selectors: "
+                    f"{', '.join(selector.__alias__ for selector in missing_selectors)}"
+                )
+
+    def __close__(self) -> None:
         self.__closed = True
 
     def __create_empty_selector(self) -> SelectorProvider[Any]:
+        if self.__closed:
+            raise DISelectorError("Cannot create selector outside context manager")
+
         selector: SelectorProvider[Any] = SelectorProvider(self.__selector)
         self.__available_selectors.add(selector)
         return selector
@@ -210,13 +229,10 @@ class SelectorPretender(Pretender, Generic[T]):
         exc_tb: TracebackType | None,
     ) -> None:
         if self.__group_selector is not None:
-            self.__group_selector.close()
+            self.__group_selector.__close__()
         self.__group_selector = None
 
 
 class SelectorPretenderBuilder(PretenderBuilder):
     def __getitem__(self, selector: str) -> SelectorPretender:
         return SelectorPretender(selector)
-
-
-Selector: Final = SelectorPretenderBuilder()

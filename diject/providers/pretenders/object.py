@@ -1,4 +1,4 @@
-from typing import Any, Callable, Final, Generic, Iterator, TypeVar
+from typing import Any, Callable, Generic, Iterator, TypeVar
 
 from diject.extensions.scope import Scope
 from diject.providers.pretenders.pretender import Pretender, PretenderBuilder, PretenderProvider
@@ -49,6 +49,3 @@ class ObjectPretenderBuilder(PretenderBuilder):
 
     def __call__(self, obj: T) -> T:
         return ObjectProvider(obj)  # type: ignore[return-value]
-
-
-Object: Final = ObjectPretenderBuilder()

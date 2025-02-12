@@ -1,7 +1,7 @@
-from typing import Final, TypeVar
+from typing import TypeVar
 
 from diject.extensions.scope import Scope
-from diject.providers.pretenders.creators.creator import CreatorPretenderBuilder, CreatorProvider
+from diject.providers.pretenders.creators.creator import CreatorProvider
 
 T = TypeVar("T")
 
@@ -12,6 +12,3 @@ class FactoryProvider(CreatorProvider[T]):
 
     async def __aprovide__(self, scope: Scope | None = None) -> T:
         return await self.__acreate__(scope)
-
-
-Factory: Final = CreatorPretenderBuilder(FactoryProvider)

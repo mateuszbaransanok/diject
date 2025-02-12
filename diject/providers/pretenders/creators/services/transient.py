@@ -1,10 +1,9 @@
 import asyncio
 import logging
-from typing import Any, AsyncIterator, Callable, Final, Generic, Iterator, TypeVar
+from typing import Any, AsyncIterator, Callable, Generic, Iterator, TypeVar
 
 from diject.extensions.scope import Scope, ScopeProtocol
 from diject.providers.pretenders.creators.services.service import (
-    ServicePretenderBuilder,
     ServiceProvider,
 )
 from diject.utils.exceptions import DIScopeError
@@ -87,6 +86,3 @@ class TransientProvider(ServiceProvider[T], ScopeProtocol[TransientData]):
                 raise
             finally:
                 transient_data.data.clear()
-
-
-Transient: Final = ServicePretenderBuilder(TransientProvider)

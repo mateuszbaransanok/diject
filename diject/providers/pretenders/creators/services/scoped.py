@@ -1,8 +1,7 @@
-from typing import Any, AsyncIterator, Callable, Final, Generic, Iterator, TypeVar
+from typing import Any, AsyncIterator, Callable, Generic, Iterator, TypeVar
 
 from diject.extensions.scope import Scope, ScopeProtocol
 from diject.providers.pretenders.creators.services.service import (
-    ServicePretenderBuilder,
     ServiceProvider,
 )
 from diject.utils.exceptions import DIScopeError
@@ -88,6 +87,3 @@ class ScopedProvider(ServiceProvider[T], ScopeProtocol[ScopedData[T]]):
                 await self.__aclose_object__(obj)
             finally:
                 scoped_data.data = None
-
-
-Scoped: Final = ServicePretenderBuilder(ScopedProvider)

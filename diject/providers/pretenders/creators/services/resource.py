@@ -1,12 +1,11 @@
 import logging
-from typing import Any, AsyncIterator, Callable, Final, Generic, Iterator, TypeVar
+from typing import Any, AsyncIterator, Callable, Generic, Iterator, TypeVar
 
 from diject.extensions.reset import ResetProtocol
 from diject.extensions.scope import Scope
 from diject.extensions.start import StartProtocol
 from diject.extensions.status import Status, StatusProtocol
 from diject.providers.pretenders.creators.services.service import (
-    ServicePretenderBuilder,
     ServiceProvider,
 )
 from diject.utils.empty import EMPTY, Empty
@@ -151,6 +150,3 @@ class ResourceProvider(ServiceProvider[T], StatusProtocol, StartProtocol, ResetP
                     await self.__aclose_object__(self.__data.object)
                 finally:
                     self.__data = ResourceData()
-
-
-Resource: Final = ServicePretenderBuilder(ResourceProvider)

@@ -1,7 +1,7 @@
 import asyncio
 import functools
 from types import TracebackType
-from typing import Any, Callable, Final, Generic, TypeVar, overload
+from typing import Any, Callable, Generic, TypeVar, overload
 from unittest import mock
 
 from diject.providers.container import Container
@@ -193,6 +193,3 @@ def patch(
             return sync_wrapper
 
     return wrapper
-
-
-Mock: Final = ProviderMockBuilder()

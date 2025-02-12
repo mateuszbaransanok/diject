@@ -7,7 +7,6 @@ from typing import (
     Any,
     AsyncIterator,
     Callable,
-    Final,
     Generator,
     Generic,
     Iterator,
@@ -547,6 +546,3 @@ def inject(func: Callable[..., Any]) -> Callable[..., Any]:
         return async_wrapper
     else:
         return sync_wrapper
-
-
-Provide: Final = ProvidableBuilder()
