@@ -48,12 +48,19 @@ jobs:
   release_candidate:
     runs-on: ubuntu-latest
     needs: [ static_analysis, unittests ]
-    if: ${{ github.event_name == 'workflow_dispatch' && (github.ref == 'refs/heads/main' || (startsWith(github.ref, 'refs/heads/hotfix/') && github.event.inputs.bump == 'patch')) }}
+    if: ${{ github.event_name == 'workflow_dispatch' }}
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
+      - name: Check branches
+        id: check_commit
+        run: |
+          if [[ "${{ github.ref }}" != "refs/heads/main" ]] && ([[ "${{ github.ref }}" != refs/heads/hotfix/* ]] || [[ "${{ github.event.inputs.bump }}" != "patch" ]]); then
+            echo "Release can be created on main branch or (patch) on hotfix/* branches" >&2
+            exit 1      
+          fi
       - name: Configure Git user
         run: |
           git config --global user.name "${{ github.actor }}"
