@@ -57,9 +57,9 @@ jobs:
       - name: Check branches
         id: check_commit
         run: |
-          if [[ "${{ github.ref }}" == "refs/heads/main" ]] || ([[ "${{ github.ref }}" == refs/heads/hotfix/* ]] && [[ "${{ github.event.inputs.bump }}" == "patch" ]]); then
+          if [[ "${{ github.ref }}" != "refs/heads/main" ]] && ([[ "${{ github.ref }}" != refs/heads/hotfix/* ]] || [[ "${{ github.event.inputs.bump }}" != "patch" ]]); then
             echo "Release can be created on main branch or (patch) on hotfix/* branches" >&2
-            exit 1
+            exit 1      
           fi
       - name: Configure Git user
         run: |
