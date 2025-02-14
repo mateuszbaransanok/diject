@@ -71,18 +71,25 @@ jobs:
         run: |
           TAG=v$(grep "current_version = " .bumpversion.cfg  | sed -e "s/^current_version = //")
           BRANCH="release/$TAG"
+          echo "$BRANCH"
+          echo "${{ github.ref_name }}"
           git checkout -B "$BRANCH"
           gh pr create \
             --title "Release $TAG" \
             --body "" \
-            --base "${GITHUB_REF#refs/heads/}" \
+            --base "${{ github.ref_name }}" \
             --head "$BRANCH" \
             --assignee "${{ github.actor }}"
 
   release:
     runs-on: ubuntu-latest
     needs: [ static_analysis, unittests ]
-    if: ${{ startsWith(github.event.head_commit.message, 'Release ') }}
+    if: >
+      (
+        ${{ github.ref == 'refs/heads/main'
+        || startsWith(github.ref, 'refs/heads/hotfix/')
+      )
+      && startsWith(github.event.head_commit.message, 'Release ') }}
     outputs:
       TAG: ${{ steps.get_tag.outputs.TAG }}
     steps:
