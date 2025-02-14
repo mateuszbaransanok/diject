@@ -3,10 +3,12 @@ from abc import ABC
 from typing import Any, Callable, Generic, Iterator, ParamSpec, TypeVar, overload
 
 from diject.extensions.scope import Scope
+from diject.providers.pretenders.object import ObjectProvider
 from diject.providers.pretenders.pretender import Pretender, PretenderBuilder, PretenderProvider
 from diject.providers.provider import Provider
 from diject.utils.convert import any_as_provider
 from diject.utils.exceptions import DITypeError
+from diject.utils.partial import Partial
 from diject.utils.repr import create_class_repr
 
 T = TypeVar("T")
@@ -18,8 +20,16 @@ class CreatorProvider(PretenderProvider[T], ABC):
     def __init__(self, callable: type[T] | Callable[..., T], /, *args: Any, **kwargs: Any) -> None:
         super().__init__()
 
+        if isinstance(callable, ObjectProvider):
+            callable = callable.__object__
+
         if isinstance(callable, Provider):
             raise DITypeError(f"'{self}' cannot create other providers")
+
+        if isinstance(callable, Partial):
+            args = (*callable.args, *args)
+            kwargs = {**callable.kwargs, **kwargs}
+            callable = callable.callable
 
         self.__callable = callable
         self.__args = tuple(any_as_provider(arg) for arg in args)
