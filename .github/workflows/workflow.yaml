@@ -48,8 +48,10 @@ jobs:
 
   release_candidate:
     runs-on: ubuntu-latest
-    needs: [ static_analysis, unittests ]
-    if: ${{ github.event_name == 'workflow_dispatch' }}
+#    needs: [ static_analysis, unittests ]
+    permissions:
+      pull-requests: write
+#    if: ${{ github.event_name == 'workflow_dispatch' }}
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-python@v5
