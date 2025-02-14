@@ -74,6 +74,7 @@ jobs:
             --title "Release $TAG" \
             --body "" \
             --base "${GITHUB_REF#refs/heads/}" \
+            --head "$BRANCH" \
             --assignee "${{ github.actor }}"
 
   release:
