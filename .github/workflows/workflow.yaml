@@ -62,7 +62,9 @@ jobs:
           git config --global user.name "${{ github.actor }}"
           git config --global user.email "${{ github.actor }}@users.noreply.github.com"
       - name: Install bump2version
-        run: pip install bump2version
+        run: |
+          git checkout -B release
+          pip install bump2version
       - name: Bump version
 #        run: bump2version ${{ github.event.inputs.bump }}
         run: bump2version patch
