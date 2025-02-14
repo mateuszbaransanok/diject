@@ -93,7 +93,7 @@ jobs:
       - name: Configure Git user
         run: |
           git config --global user.name "${{ env.USER_NAME }}"
-          git config --global user.email "no-reply@example.com"
+          git config --global user.email "${{ env.USER_NAME }}@users.noreply.github.com"
 
       - name: Install bump2version
         run: pip install bump2version
