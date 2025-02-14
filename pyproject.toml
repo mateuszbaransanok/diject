@@ -1,6 +1,6 @@
 [project]
 name = 'diject'
-version = '0.5.2'
+version = '0.5.3'
 description = 'A powerful dependency injection framework that automatically injects objects, promoting loose coupling, improving testability, and centralizing configuration for easier maintenance.'
 readme = 'README.md'
 requires-python = '>=3.11'
