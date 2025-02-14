@@ -15,7 +15,12 @@ class PretenderProvider(Provider[T], ABC):
     def __call__(self, *args: Any, **kwargs: Any) -> "CallableProvider":
         from diject.providers.pretenders.callable import CallableProvider
 
-        return CallableProvider(self, *args, **kwargs)
+        callable = CallableProvider(self, *args, **kwargs)
+
+        if self.__has_alias__:
+            callable.__alias__ = f"{self.__alias__}()"
+
+        return callable
 
     def __getattr__(self, name: str) -> "AttributeProvider":
         if name.startswith("__"):
@@ -23,7 +28,12 @@ class PretenderProvider(Provider[T], ABC):
         else:
             from diject.providers.pretenders.attribute import AttributeProvider
 
-            return AttributeProvider(self, name)
+            attribute = AttributeProvider(self, name)
+
+            if self.__has_alias__:
+                attribute.__alias__ = f"{self.__alias__}.{name}"
+
+            return attribute
 
 
 class Pretender(ABC):

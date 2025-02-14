@@ -13,12 +13,14 @@ from diject.providers.pretenders.creators.services.transient import TransientPro
 from diject.providers.pretenders.object import ObjectPretenderBuilder
 from diject.providers.pretenders.selector import SelectorPretenderBuilder
 from diject.utils.mock import ProviderMockBuilder, patch
+from diject.utils.partial import PartialPretenderBuilder
 
 __all__ = [
     "Container",
     "Factory",
     "Mock",
     "Object",
+    "Partial",
     "Provide",
     "Resource",
     "Scoped",
@@ -37,16 +39,17 @@ __all__ = [
 
 __version__ = "0.5.1"
 
-Factory: CreatorPretenderBuilder[FactoryProvider[Any]]
+Factory: CreatorPretenderBuilder[FactoryProvider]
 Mock: ProviderMockBuilder
 Object: ObjectPretenderBuilder
+Partial: PartialPretenderBuilder
 Provide: ProvidableBuilder
-Resource: ServicePretenderBuilder[ResourceProvider[Any]]
-Scoped: ServicePretenderBuilder[ScopedProvider[Any]]
+Resource: ServicePretenderBuilder[ResourceProvider]
+Scoped: ServicePretenderBuilder[ScopedProvider]
 Selector: SelectorPretenderBuilder
-Singleton: ServicePretenderBuilder[SingletonProvider[Any]]
+Singleton: ServicePretenderBuilder[SingletonProvider]
 Thread: ThreadPretenderBuilder
-Transient: ServicePretenderBuilder[TransientProvider[Any]]
+Transient: ServicePretenderBuilder[TransientProvider]
 
 
 def __getattr__(name: str) -> Any:
@@ -57,6 +60,8 @@ def __getattr__(name: str) -> Any:
             return ProviderMockBuilder()
         case "Object":
             return ObjectPretenderBuilder()
+        case "Partial":
+            return PartialPretenderBuilder()
         case "Provide":
             return ProvidableBuilder()
         case "Resource":

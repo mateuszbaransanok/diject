@@ -14,6 +14,10 @@ class Provider(Generic[T], ABC):
         return f"{self.__alias__} ({type(self).__qualname__})"
 
     @property
+    def __has_alias__(self) -> bool:
+        return bool(self.__alias)
+
+    @property
     def __alias__(self) -> str:
         return self.__alias or type(self).__qualname__
 
