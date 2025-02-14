@@ -49,9 +49,6 @@ jobs:
   release_candidate:
     runs-on: ubuntu-latest
     needs: [ static_analysis, unittests ]
-    permissions:
-      contents: write
-      pull-requests: write
     if: ${{ github.event_name == 'workflow_dispatch' }}
     steps:
       - uses: actions/checkout@v3
@@ -95,10 +92,17 @@ jobs:
         with:
           python-version: "3.11"
       - name: Get tag
-        id: get_tag
         run: |
           TAG=v$(grep "current_version = " .bumpversion.cfg | sed -e "s/^current_version = //")
           echo "TAG=$TAG" >> $GITHUB_ENV
+      - name: Configure Git user
+        run: |
+          git config --global user.name "${{ github.actor }}"
+          git config --global user.email "${{ github.actor }}@users.noreply.github.com"
+      - name: Create Tag
+        run: |
+          git tag "${{ env.TAG }}"
+          git push origin "${{ env.TAG }}"
       - name: Create release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
