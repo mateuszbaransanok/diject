@@ -37,7 +37,7 @@ __all__ = [
     "utils",
 ]
 
-__version__ = "0.5.1"
+__version__ = "0.5.2"
 
 Factory: CreatorPretenderBuilder[FactoryProvider]
 Mock: ProviderMockBuilder
