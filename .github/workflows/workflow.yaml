@@ -70,12 +70,10 @@ jobs:
           . venv/bin/activate
           tox -e unittests
 
-  release:
+  release_candidate:
     runs-on: ubuntu-latest
     needs: [static_analysis, unittests]
     if: ${{ github.event_name == 'workflow_dispatch' }}
-    outputs:
-      TAG: ${{ steps.tag_name.outputs.TAG }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -101,19 +99,38 @@ jobs:
       - name: Bump version using bump2version
         run: bump2version ${{ github.event.inputs.bump }}
 
+      - name: Push changes to repository
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          RELEASE_BRANCH="release/${{ env.TAG }}"
+          git checkout -B "$RELEASE_BRANCH"
+          gh pr create \
+            --title "Release ${{ env.TAG }}" \
+            --base "$RELEASE_BRANCH" \
+            --assignee "${{ env.USER_NAME }}"
+
+  release:
+    runs-on: ubuntu-latest
+    needs: [static_analysis, unittests]
+    if: ${{ github.event.head_commit.message matches '^Release \d+\.\d+\.\d+ \(#\d+\)$' }}
+    outputs:
+      TAG: ${{ steps.tag_name.outputs.TAG }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
       - name: Get latest tag
         id: tag_name
         run: |
           TAG=v$(grep "current_version = " .bumpversion.cfg  | sed -e "s/^current_version = //")
           echo "TAG=$TAG" >> $GITHUB_OUTPUT
           echo "TAG=$TAG" >> $GITHUB_ENV
-
-      - name: Push changes to repository
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          git push
-          git push origin "${{ env.TAG }}"
 
       - name: Create Release with GitHub CLI
         env:
@@ -123,6 +140,7 @@ jobs:
           gh release create "${{ env.TAG }}" \
             --title "${{ env.TAG }}" \
             --generate-notes \
+            --target "${{ github.sha }}" \
             --repo "$GITHUB_REPOSITORY"
 
   deploy:
