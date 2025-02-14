@@ -77,6 +77,7 @@ jobs:
           echo "$BRANCH"
           echo "${{ github.ref_name }}"
           git checkout -B "$BRANCH"
+          git push origin "$BRANCH"
           gh pr create \
             --title "Release $TAG" \
             --body "Release $TAG" \
