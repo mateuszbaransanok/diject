@@ -67,11 +67,12 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          TAG=$(grep "current_version = " .bumpversion.cfg | sed -e "s/^current_version = //")
-          BRANCH="release/v$TAG"
+          TAG=v$(grep "current_version = " .bumpversion.cfg  | sed -e "s/^current_version = //")
+          BRANCH="release/$TAG"
           git checkout -B "$BRANCH"
           gh pr create \
-            --title "Release v$TAG" \
+            --title "Release $TAG" \
+            --body "" \
             --base "${GITHUB_REF#refs/heads/}" \
             --assignee "${{ github.actor }}"
 
@@ -90,12 +91,12 @@ jobs:
         id: get_tag
         run: |
           TAG=$(grep "current_version = " .bumpversion.cfg | sed -e "s/^current_version = //")
-          echo "TAG=v$TAG" >> $GITHUB_OUTPUT
+          echo "TAG=$TAG" >> $GITHUB_OUTPUT
       - name: Create release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: gh release create "v${{ steps.get_tag.outputs.TAG }}" \
-          --title "v${{ steps.get_tag.outputs.TAG }}" \
+        run: gh release create "${{ steps.get_tag.outputs.TAG }}" \
+          --title "${{ steps.get_tag.outputs.TAG }}" \
           --generate-notes \
           --target "${{ github.sha }}"
 
