@@ -31,6 +31,9 @@ class ObjectProvider(PretenderProvider[T], ResetProtocol):
     def __travers__(self) -> Iterator[tuple[str, Provider[Any]]]:
         yield from ()
 
+    def __type__(self) -> Any:
+        return type(self.__object)
+
     def __provide__(self, scope: Scope | None = None) -> T:
         if isinstance(self.__object, Empty):
             raise DIEmptyObjectError(f"{self} is not set")

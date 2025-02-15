@@ -1,4 +1,4 @@
-from typing import Any, Iterator
+from typing import Any, Iterator, get_type_hints
 
 from diject.extensions.scope import Scope
 from diject.providers.pretenders.pretender import PretenderProvider
@@ -17,6 +17,22 @@ class AttributeProvider(PretenderProvider[Any]):
 
     def __propagate_alias__(self, alias: str) -> None:
         self.__provider.__alias__ = f"{alias}^"
+
+    def __type__(self) -> Any:
+        provide_type = self.__provider.__type__()
+        if not isinstance(provide_type, type):
+            return Any
+
+        if self.__name in provide_type.__annotations__:
+            return provide_type.__annotations__[self.__name]
+        elif self.__name in provide_type.__dict__:
+            obj = provide_type.__dict__[self.__name]
+            if isinstance(obj, property):
+                return get_type_hints(obj.fget).get("return", Any)
+            else:
+                return obj
+        else:
+            return Any
 
     def __travers__(self) -> Iterator[tuple[str, Provider[Any]]]:
         yield from ()

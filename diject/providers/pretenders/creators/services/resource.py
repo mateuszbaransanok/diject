@@ -58,12 +58,7 @@ class ResourceData(Generic[T]):
 class ResourceProvider(ServiceProvider[T], StatusProtocol, StartProtocol, ResetProtocol):
     def __init__(
         self,
-        callable: (
-            Callable[..., Iterator[T]]
-            | Callable[..., AsyncIterator[T]]
-            | type[T]
-            | Callable[..., T]
-        ),
+        callable: Callable[..., Iterator[T] | AsyncIterator[T] | T],
         /,
         *args: Any,
         **kwargs: Any,

@@ -23,12 +23,7 @@ class TransientData(Generic[T]):
 class TransientProvider(ServiceProvider[T], ScopeProtocol[TransientData]):
     def __init__(
         self,
-        callable: (
-            Callable[..., Iterator[T]]
-            | Callable[..., AsyncIterator[T]]
-            | type[T]
-            | Callable[..., T]
-        ),
+        callable: Callable[..., Iterator[T] | AsyncIterator[T] | T],
         /,
         *args: Any,
         **kwargs: Any,

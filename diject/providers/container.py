@@ -38,8 +38,8 @@ class MetaContainer(ABCMeta):
         parents: tuple[type, ...],
         attributes: dict[str, Any],
     ) -> "MetaContainer":
-        attributes = {key: _as_provider(name, key, value) for key, value in attributes.items()}
-        return super().__new__(cls, name, parents, attributes)
+        __attributes = {key: _as_provider(name, key, value) for key, value in attributes.items()}
+        return super().__new__(cls, name, parents, __attributes)
 
     def __setattr__(cls, key: str, value: Any) -> None:
         if hasattr(cls, key):
@@ -98,6 +98,9 @@ class Container(Provider["Container"], metaclass=MetaContainer):
             )
 
         super().__setattr__(key, value)
+
+    def __type__(self) -> Any:
+        return type(self)
 
     def __travers__(self) -> Iterator[tuple[str, Provider[Any]]]:
         container = type(self)

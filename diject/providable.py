@@ -9,6 +9,7 @@ from typing import (
     Callable,
     Generator,
     Generic,
+    Hashable,
     Iterator,
     TypeVar,
     cast,
@@ -24,9 +25,10 @@ from diject.extensions.status import Status, StatusProtocol
 from diject.providers.container import Container
 from diject.providers.pretenders.selector import SelectorProvider
 from diject.providers.provider import Provider
-from diject.utils.empty import EMPTY
+from diject.utils.empty import EMPTY, Empty
 from diject.utils.exceptions import DIScopeError, DITypeError
 from diject.utils.lock import Lock
+from diject.utils.registry import get_registered_provider, register
 from diject.utils.repr import create_class_repr
 
 T = TypeVar("T")
@@ -128,7 +130,7 @@ class Providable(Generic[T]):
         recursive: bool = False,
         only_public: bool = False,
         only_selected: bool = False,
-    ) -> Iterator[tuple[str, TProvider]]:
+    ) -> Iterator[tuple[str, Provider[Any]]]:
         pass
 
     def travers(
@@ -234,6 +236,57 @@ class Providable(Generic[T]):
     async def arestart(self) -> None:
         await self.areset()
         await self.astart()
+
+    def register(
+        self,
+        annotation: type | tuple[type, ...] | set[type] | list[type] | None = None,
+        alias: str | tuple[str, ...] | set[str] | list[str] | None = None,
+        module: str | tuple[str, ...] | set[str] | list[str] | None = None,
+    ) -> None:
+        aliases = {alias} if isinstance(alias, str) else set(alias) if alias else set()
+        modules = {module} if isinstance(module, str) else set(module) if module else set()
+
+        if isinstance(self.__provider, Container):
+            container = type(self.__provider)
+
+            _modules = set(getattr(container, "__wire__", set()))
+            _modules.update(modules)
+
+            register(
+                provider=container,
+                annotations=(container,),
+                aliases=aliases,
+                modules=_modules,
+            )
+
+            for name, provider in self.travers(only_public=True):
+                if name in container.__annotations__:
+                    annot = container.__annotations__[name]
+                else:
+                    annot = provider.__type__()
+
+                register(
+                    provider=provider,
+                    annotations=annot.mro() if isinstance(annot, type) else (),
+                    aliases={name, provider.__alias__},
+                    modules=_modules,
+                )
+        else:
+            if isinstance(annotation, list | tuple | set):
+                annotations = annotation
+            elif annotation:
+                annotations = (annotation,)
+            elif isinstance(annot := self.__provider.__type__(), type):
+                annotations = annot.mro()
+            else:
+                annotations = ()
+
+            register(
+                provider=self.__provider,
+                annotations=annotations,
+                aliases=aliases,
+                modules=modules,
+            )
 
     def __start(
         self,
@@ -472,6 +525,12 @@ class ProvidableBuilder:
         pass
 
     def __getitem__(self, provider: Any) -> Any:
+        if (
+            isinstance(provider, str)
+            or (isinstance(provider, type) and not issubclass(provider, Container))
+        ) and isinstance(provider, Hashable):
+            provider = get_registered_provider(provider)
+
         if isinstance(provider, type) and issubclass(provider, Container):
             provider = provider()
 
@@ -498,24 +557,38 @@ def inject(func: Callable[..., Any]) -> Callable[..., Any]:
         signature = inspect.signature(func)
         bound_params = signature.bind_partial(*args, **kwargs)
 
+        module = getattr(func, "__module__", "")
+
         for param in signature.parameters.values():
-            if get_origin(param.annotation) is Annotated and len(get_args(param.annotation)) == 2:
-                base_type, obj = get_args(param.annotation)
-                if (
-                    param.name not in bound_params.arguments
-                    and (value := provide_object(obj, scope)) is not EMPTY
-                ):
-                    bound_params.arguments[param.name] = value
+            if param.name in bound_params.arguments:
+                value = bound_params.arguments[param.name]
+            elif param.default is not param.empty:
+                value = param.default
+            else:
+                annot_type = get_origin(param.annotation) or param.annotation
 
-            if (obj := bound_params.arguments.get(param.name)) and (
-                value := provide_object(obj, scope)
-            ) is not EMPTY:
+                if annot_type is Annotated:
+                    annot_args = get_args(param.annotation)
+                    if len(annot_args) == 2:
+                        if isinstance(annot_args[1], str):
+                            value = get_registered_provider(annot_args[1], module)
+                        elif isinstance(annot_args[1], Provider) or (
+                            isinstance(annot_args[1], type) and issubclass(annot_args[1], Container)
+                        ):
+                            value = annot_args[1]
+                        else:
+                            value = get_registered_provider(annot_args[0], module)
+                    elif len(annot_args) == 1:
+                        value = get_registered_provider(annot_args[0], module)
+                    else:
+                        value = EMPTY
+                else:
+                    value = get_registered_provider(param.annotation, module)
+
+            if not isinstance(value := provide_object(value, scope), Empty):
                 bound_params.arguments[param.name] = value
 
-            if (obj := param.default) is not param.empty and (
-                value := provide_object(obj, scope)
-            ) is not EMPTY:
-                bound_params.arguments[param.name] = value
+        signature.bind(*bound_params.args, **bound_params.kwargs)
 
         return bound_params.args, bound_params.kwargs, scope
 

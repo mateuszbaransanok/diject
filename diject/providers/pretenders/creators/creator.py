@@ -1,6 +1,6 @@
 import asyncio
 from abc import ABC
-from typing import Any, Callable, Generic, Iterator, ParamSpec, TypeVar, overload
+from typing import Any, Callable, Generic, Iterator, ParamSpec, TypeVar, get_type_hints, overload
 
 from diject.extensions.scope import Scope
 from diject.providers.pretenders.object import ObjectProvider
@@ -17,7 +17,7 @@ P = ParamSpec("P")
 
 
 class CreatorProvider(PretenderProvider[T], ABC):
-    def __init__(self, callable: type[T] | Callable[..., T], /, *args: Any, **kwargs: Any) -> None:
+    def __init__(self, callable: Callable[..., T], /, *args: Any, **kwargs: Any) -> None:
         super().__init__()
 
         if isinstance(callable, ObjectProvider):
@@ -49,6 +49,15 @@ class CreatorProvider(PretenderProvider[T], ABC):
 
     def __repr__(self) -> str:
         return create_class_repr(self, self.__callable, *self.__args, **self.__kwargs)
+
+    def __type__(self) -> Any:
+        if isinstance(self.__callable, type):
+            return self.__callable
+        else:
+            try:
+                return get_type_hints(self.__callable).get("return", Any)
+            except TypeError:
+                return Any
 
     def __travers__(self) -> Iterator[tuple[str, Provider[Any]]]:
         for i, arg in enumerate(self.__args):
