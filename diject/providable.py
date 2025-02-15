@@ -578,7 +578,7 @@ def inject(func: Callable[..., Any]) -> Callable[..., Any]:
                             value = annot_args[1]
                         else:
                             value = get_registered_provider(annot_args[0], module)
-                    elif len(annot_args) == 1:
+                    elif annot_args:
                         value = get_registered_provider(annot_args[0], module)
                     else:
                         value = EMPTY
