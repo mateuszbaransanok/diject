@@ -21,12 +21,7 @@ class SingletonData(Generic[T]):
 class SingletonProvider(ServiceProvider[T], StatusProtocol, ResetProtocol):
     def __init__(
         self,
-        callable: (
-            Callable[..., Iterator[T]]
-            | Callable[..., AsyncIterator[T]]
-            | type[T]
-            | Callable[..., T]
-        ),
+        callable: Callable[..., Iterator[T] | AsyncIterator[T] | T],
         /,
         *args: Any,
         **kwargs: Any,

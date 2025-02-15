@@ -1,13 +1,22 @@
 import logging
 from abc import ABC
-from typing import (
-    Any,
+from collections.abc import (
+    AsyncGenerator,
+    AsyncIterable,
     AsyncIterator,
     Callable,
-    Generic,
+    Generator,
+    Iterable,
     Iterator,
+)
+from typing import (
+    Any,
+    Generic,
     ParamSpec,
     TypeVar,
+    get_args,
+    get_origin,
+    get_type_hints,
     overload,
 )
 
@@ -27,17 +36,36 @@ LOG = logging.getLogger(__name__)
 class ServiceProvider(CreatorProvider[T], ABC):
     def __init__(
         self,
-        callable: (
-            Callable[..., Iterator[T]]
-            | Callable[..., AsyncIterator[T]]
-            | type[T]
-            | Callable[..., T]
-        ),
+        callable: Callable[..., Iterator[T] | AsyncIterator[T] | T],
         /,
         *args: Any,
         **kwargs: Any,
     ) -> None:
         super().__init__(callable, *args, **kwargs)  # type: ignore[arg-type]
+
+    def __type__(self) -> Any:
+        if isinstance(self.__callable__, type):
+            return self.__callable__
+        else:
+            annot_full = get_type_hints(self.__callable__).get("return", Any)
+            annot_origin = get_origin(annot_full)
+
+            if annot_origin is None:
+                return annot_full
+            else:
+                annot_args = get_args(annot_full)
+
+                if annot_origin in (
+                    AsyncGenerator,
+                    AsyncIterable,
+                    AsyncIterator,
+                    Generator,
+                    Iterable,
+                    Iterator,
+                ):
+                    return annot_args[0] if annot_args and isinstance(annot_args[0], type) else Any
+                else:
+                    return Any
 
     def __create_object_and_instance__(
         self,
@@ -119,12 +147,7 @@ class ServicePretender(Pretender, Generic[T, TServiceProvider]):
     def __init__(
         self,
         provider_cls: type[TServiceProvider],
-        callable: (
-            Callable[..., Iterator[T]]
-            | Callable[..., AsyncIterator[T]]
-            | type[T]
-            | Callable[..., T]
-        ),
+        callable: Callable[..., Iterator[T] | AsyncIterator[T] | T],
     ) -> None:
         self.__provider_cls = provider_cls
         self.__callable = callable

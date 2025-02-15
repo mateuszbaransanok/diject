@@ -32,6 +32,10 @@ class Provider(Generic[T], ABC):
             provider.__alias__ = f"{alias}.{name}"
 
     @abstractmethod
+    def __type__(self) -> Any:
+        pass
+
+    @abstractmethod
     def __travers__(self) -> Iterator[tuple[str, "Provider[Any]"]]:
         pass
 

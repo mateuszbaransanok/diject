@@ -36,7 +36,7 @@ class ThreadData(Generic[T]):
 class ThreadProvider(ServiceProvider[T], StatusProtocol, ResetProtocol):
     def __init__(
         self,
-        callable: Callable[..., Iterator[T]] | type[T] | Callable[..., T],
+        callable: Callable[..., Iterator[T] | T],
         /,
         *args: Any,
         **kwargs: Any,

@@ -76,6 +76,21 @@ class SelectorProvider(PretenderProvider[T], StatusProtocol, ResetProtocol):
                     f"Available options for {self}: {', '.join(self.__providers)}"
                 )
 
+    def __type__(self) -> Any:
+        if not self.__providers:
+            return Any
+
+        baseline, *others = (
+            tp.mro() if isinstance(tp := provider.__type__(), type) else ()
+            for name, provider in self.__providers.items()
+        )
+
+        for cls in baseline:
+            if all(cls in other for other in others):
+                return cls
+
+        return Any
+
     def __travers__(
         self,
         only_selected: bool = False,

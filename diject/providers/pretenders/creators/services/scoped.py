@@ -19,12 +19,7 @@ class ScopedData(Generic[T]):
 class ScopedProvider(ServiceProvider[T], ScopeProtocol[ScopedData[T]]):
     def __init__(
         self,
-        callable: (
-            Callable[..., Iterator[T]]
-            | Callable[..., AsyncIterator[T]]
-            | type[T]
-            | Callable[..., T]
-        ),
+        callable: Callable[..., Iterator[T] | AsyncIterator[T] | T],
         /,
         *args: Any,
         **kwargs: Any,

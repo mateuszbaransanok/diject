@@ -1,5 +1,5 @@
 import asyncio
-from typing import Any, Iterator
+from typing import Any, Iterator, get_type_hints
 
 from diject.extensions.scope import Scope
 from diject.providers.pretenders.pretender import PretenderProvider
@@ -22,6 +22,13 @@ class CallableProvider(PretenderProvider[Any]):
         self.__provider.__alias__ = f"{alias}^"
         for name, provider in self.__travers__():
             provider.__alias__ = f"{alias}({name})"
+
+    def __type__(self) -> Any:
+        provide_type = self.__provider.__type__()
+        try:
+            return get_type_hints(provide_type).get("return", Any)
+        except TypeError:
+            return Any
 
     def __travers__(self) -> Iterator[tuple[str, Provider[Any]]]:
         for i, arg in enumerate(self.__args):
