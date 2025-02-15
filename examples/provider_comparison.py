@@ -1,5 +1,5 @@
+from collections.abc import Iterator
 from random import randint
-from typing import Iterator
 
 import diject as di
 
@@ -26,7 +26,6 @@ class MainContainer(di.Container):
 
 print("START SCRIPT".center(50, "="))
 di.Provide[MainContainer].start()
-
 
 print("START LOOP".center(50, "="))
 for _ in range(2):

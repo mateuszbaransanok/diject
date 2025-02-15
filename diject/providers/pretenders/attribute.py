@@ -1,4 +1,5 @@
-from typing import Any, Iterator, get_type_hints
+from collections.abc import Iterator
+from typing import Any, get_type_hints
 
 from diject.extensions.scope import Scope
 from diject.providers.pretenders.pretender import PretenderProvider

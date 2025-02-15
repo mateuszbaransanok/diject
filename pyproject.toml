@@ -31,7 +31,8 @@ test = [
     'mypy==1.15.0',
     'pyproject-flake8==7.0.0',
     'pytest-asyncio==0.25.3',
-    'pytest==8.3.4'
+    'pytest==8.3.4',
+    'pyupgrade==3.19.1',
 ]
 
 [project.urls]
@@ -104,6 +105,7 @@ envlist =
     isort
     flake
     mypy
+    pyupgrade
     unittests
 
 [testenv]
@@ -121,6 +123,29 @@ commands = pflake8 diject/ tests/ examples/
 
 [testenv:mypy]
 commands = mypy --install-types --non-interactive --no-namespace-packages diject/ tests/ examples/
+
+[testenv:pyupgrade]
+allowlist_externals =
+    mkdir
+    rsync
+    find
+    sh
+commands =
+    mkdir -p {envtmpdir}/backup
+    rsync --archive \
+      --include='diject/' \
+      --include='tests/' \
+      --include='examples/' \
+      --include='diject/***/' \
+      --include='tests/***/' \
+      --include='examples/***/' \
+      --include='*.py' \
+      --exclude='*' \
+      . {envtmpdir}/backup/
+    find {envtmpdir}/backup -name "*.py" -exec pyupgrade --py311 {} \;
+    sh -c 'diff_output=$(find diject -name "*.py" -exec diff {envtmpdir}/backup/{} {} \;); \
+           rm -rf {envtmpdir}/backup; \
+           if [ -n "$diff_output" ]; then echo "$diff_output"; exit 2; fi'
 
 [testenv:unittests]
 commands = pytest tests/unit/

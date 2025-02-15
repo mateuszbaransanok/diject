@@ -1,7 +1,7 @@
+from collections.abc import Iterator
 from concurrent.futures import ThreadPoolExecutor
 from random import randint, random
 from time import sleep
-from typing import Iterator
 
 import diject as di
 

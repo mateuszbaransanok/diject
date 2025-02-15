@@ -1,4 +1,5 @@
-from typing import Any, Callable, Generic, Iterator, TypeVar
+from collections.abc import Callable, Iterator
+from typing import Any, Generic, TypeVar
 
 from diject.extensions.reset import ResetProtocol
 from diject.extensions.scope import Scope

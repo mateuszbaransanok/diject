@@ -1,4 +1,5 @@
-from typing import Any, AsyncIterator, Callable, Generic, Iterator, TypeVar
+from collections.abc import AsyncIterator, Callable, Iterator
+from typing import Any, Generic, TypeVar
 
 from diject.extensions.scope import Scope, ScopeProtocol
 from diject.providers.pretenders.creators.services.service import (

@@ -1,7 +1,8 @@
 import logging
+from collections.abc import AsyncIterator, Callable, Iterator
 from contextlib import contextmanager
 from types import TracebackType
-from typing import Any, AsyncIterator, Callable, Generic, Iterator, TypeVar
+from typing import Any, Generic, TypeVar
 
 from diject.extensions.reset import ResetProtocol
 from diject.extensions.scope import Scope
