@@ -241,15 +241,15 @@ class Providable(Generic[T]):
         self,
         annotation: type | tuple[type, ...] | set[type] | list[type] | None = None,
         alias: str | tuple[str, ...] | set[str] | list[str] | None = None,
-        module: str | tuple[str, ...] | set[str] | list[str] | None = None,
+        wire: str | tuple[str, ...] | set[str] | list[str] | None = None,
     ) -> None:
         aliases = {alias} if isinstance(alias, str) else set(alias) if alias else set()
-        modules = {module} if isinstance(module, str) else set(module) if module else set()
+        modules = {wire} if isinstance(wire, str) else set(wire) if wire else set()
 
         if isinstance(self.__provider, Container):
             container = type(self.__provider)
 
-            _modules = set(getattr(container, "__wire__", set()))
+            _modules = set(getattr(container, "__wire__", ()))
             _modules.update(modules)
 
             register(
