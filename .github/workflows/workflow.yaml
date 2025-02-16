@@ -22,7 +22,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        NAME: [ black, isort, flake, mypy ]
+        NAME: [ black, isort, flake, mypy, pyupgrade ]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
