@@ -1,4 +1,5 @@
-from typing import Any, Callable, Generic, TypeVar
+from collections.abc import Callable
+from typing import Any, Generic, TypeVar
 
 from diject.utils.repr import create_class_repr
 

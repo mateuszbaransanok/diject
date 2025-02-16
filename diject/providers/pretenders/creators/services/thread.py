@@ -1,6 +1,7 @@
 import logging
 import threading
-from typing import Any, Callable, Generic, Iterator, ParamSpec, TypeVar, overload
+from collections.abc import Callable, Iterator
+from typing import Any, Generic, ParamSpec, TypeVar, overload
 
 from diject.extensions.reset import ResetProtocol
 from diject.extensions.scope import Scope

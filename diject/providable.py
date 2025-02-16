@@ -1,16 +1,12 @@
 import asyncio
 import functools
 import inspect
+from collections.abc import AsyncIterator, Callable, Generator, Hashable, Iterator
 from types import TracebackType
 from typing import (
     Annotated,
     Any,
-    AsyncIterator,
-    Callable,
-    Generator,
     Generic,
-    Hashable,
-    Iterator,
     TypeVar,
     cast,
     get_args,
@@ -28,7 +24,7 @@ from diject.providers.provider import Provider
 from diject.utils.empty import EMPTY, Empty
 from diject.utils.exceptions import DIScopeError, DITypeError
 from diject.utils.lock import Lock
-from diject.utils.registry import get_registered_provider, register
+from diject.utils.registry import get_registered_provider, register, unregister
 from diject.utils.repr import create_class_repr
 
 T = TypeVar("T")
@@ -247,30 +243,11 @@ class Providable(Generic[T]):
         modules = {wire} if isinstance(wire, str) else set(wire) if wire else set()
 
         if isinstance(self.__provider, Container):
-            container = type(self.__provider)
-
-            _modules = set(getattr(container, "__wire__", ()))
-            _modules.update(modules)
-
-            register(
-                provider=container,
-                annotations=(container,),
+            self.__register_container(
+                container=type(self.__provider),
                 aliases=aliases,
-                modules=_modules,
+                modules=modules,
             )
-
-            for name, provider in self.travers(only_public=True):
-                if name in container.__annotations__:
-                    annot = container.__annotations__[name]
-                else:
-                    annot = provider.__type__()
-
-                register(
-                    provider=provider,
-                    annotations=annot.mro() if isinstance(annot, type) else (),
-                    aliases={name, provider.__alias__},
-                    modules=_modules,
-                )
         else:
             if isinstance(annotation, list | tuple | set):
                 annotations = annotation
@@ -287,6 +264,12 @@ class Providable(Generic[T]):
                 aliases=aliases,
                 modules=modules,
             )
+
+    def unregister(self) -> None:
+        if isinstance(self.__provider, Container):
+            self.__unregister_container(type(self.__provider))
+        else:
+            unregister(self.__provider)
 
     def __start(
         self,
@@ -506,6 +489,51 @@ class Providable(Generic[T]):
                     cache=cache,
                 ):
                     yield sub_name, sub_provider
+
+    def __register_container(
+        self,
+        container: type[Container],
+        aliases: set[str],
+        modules: set[str],
+    ) -> None:
+        container_modules = set(getattr(container, "__wire__", ()))
+        container_modules.update(modules)
+
+        register(
+            provider=container,
+            annotations=(container,),
+            aliases=aliases,
+            modules=container_modules,
+        )
+
+        for name, provider in self.travers(only_public=True):
+            if isinstance(provider, Container):
+                self.__register_container(
+                    container=container,
+                    aliases=set(),
+                    modules=modules,
+                )
+            else:
+                if name in container.__annotations__:
+                    annot = container.__annotations__[name]
+                else:
+                    annot = provider.__type__()
+
+                register(
+                    provider=provider,
+                    annotations=annot.mro() if isinstance(annot, type) else (),
+                    aliases={name, provider.__alias__},
+                    modules=container_modules,
+                )
+
+    def __unregister_container(self, container: type[Container]) -> None:
+        unregister(container)
+
+        for name, provider in self.travers(only_public=True):
+            if isinstance(provider, Container):
+                self.__unregister_container(container)
+            else:
+                unregister(provider)
 
 
 class ProvidableBuilder:

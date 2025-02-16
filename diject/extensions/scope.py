@@ -1,4 +1,5 @@
-from typing import Any, Generic, Iterator, Protocol, TypeVar, runtime_checkable
+from collections.abc import Iterator
+from typing import Any, Generic, Protocol, TypeVar, runtime_checkable
 
 T = TypeVar("T", contravariant=True)
 

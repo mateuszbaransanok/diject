@@ -1,6 +1,6 @@
 import asyncio
+from collections.abc import AsyncIterator
 from random import randint, random
-from typing import AsyncIterator
 
 import diject as di
 

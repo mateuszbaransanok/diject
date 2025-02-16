@@ -1,7 +1,8 @@
 import types
 import warnings
 from abc import ABCMeta
-from typing import Any, Iterator, TypeVar
+from collections.abc import Iterator
+from typing import Any, TypeVar
 
 from diject.extensions.scope import Scope
 from diject.providers.pretenders.object import ObjectProvider

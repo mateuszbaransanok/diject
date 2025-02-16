@@ -1,5 +1,6 @@
 import logging
-from typing import Any, AsyncIterator, Callable, Generic, Iterator, TypeVar
+from collections.abc import AsyncIterator, Callable, Iterator
+from typing import Any, Generic, TypeVar
 
 from diject.extensions.reset import ResetProtocol
 from diject.extensions.scope import Scope

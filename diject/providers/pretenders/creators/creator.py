@@ -1,6 +1,7 @@
 import asyncio
 from abc import ABC
-from typing import Any, Callable, Generic, Iterator, ParamSpec, TypeVar, get_type_hints, overload
+from collections.abc import Callable, Iterator
+from typing import Any, Generic, ParamSpec, TypeVar, get_type_hints, overload
 
 from diject.extensions.scope import Scope
 from diject.providers.pretenders.object import ObjectProvider
