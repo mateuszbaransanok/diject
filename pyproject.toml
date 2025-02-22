@@ -1,56 +1,58 @@
 [project]
-name = 'diject'
-version = '0.7.0'
-description = 'A powerful dependency injection framework that automatically injects objects, promoting loose coupling, improving testability, and centralizing configuration for easier maintenance.'
-readme = 'README.md'
-requires-python = '>=3.11'
-license = { file = 'LICENSE' }
-keywords = ['Dependency Injection']
+name = "diject"
+version = "0.7.0"
+description = "A powerful dependency injection framework that automatically injects objects, promoting loose coupling, improving testability, and centralizing configuration for easier maintenance."
+readme = "README.md"
+requires-python = ">=3.11"
+license = { file = "LICENSE" }
+keywords = ["Dependency Injection"]
 authors = [
-    { name = 'Mateusz Baran' }
+    { name = "Mateusz Baran" }
 ]
 maintainers = [
-    { name = 'Mateusz Baran' }
+    { name = "Mateusz Baran" }
 ]
 classifiers = [
-    'Development Status :: 4 - Beta',
-    'Programming Language :: Python',
-    'Programming Language :: Python :: 3',
-    'Programming Language :: Python :: 3 :: Only',
-    'Programming Language :: Python :: 3.11',
-    'Operating System :: OS Independent',
-    'License :: OSI Approved :: MIT License'
+    "Development Status :: 4 - Beta",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Operating System :: OS Independent",
+    "License :: OSI Approved :: MIT License",
 ]
 
 dependencies = []
 
 [project.optional-dependencies]
 test = [
-    'black==25.1.0',
-    'isort==6.0.0',
-    'mypy==1.15.0',
-    'pyproject-flake8==7.0.0',
-    'pytest-asyncio==0.25.3',
-    'pytest==8.3.4',
-    'pyupgrade==3.19.1',
+    "black==25.1.0",
+    "isort==6.0.0",
+    "mypy==1.15.0",
+    "pyproject-flake8==7.0.0",
+    "pytest-asyncio==0.25.3",
+    "pytest==8.3.4",
+    "pyupgrade==3.19.1",
 ]
 
 [project.urls]
-repository = 'https://github.com/mateuszbaransanok/diject'
+repository = "https://github.com/mateuszbaransanok/diject"
 
 [tool.pytest.ini_options]
-norecursedirs = '.git .tox .ipynb_checkpoints .cache .mypy_cache'
+norecursedirs = ".git .tox .ipynb_checkpoints .cache .mypy_cache"
 log_cli = true
-log_cli_level = 'WARNING'
-log_cli_format = '%(asctime)s [%(levelname)8s] %(message)s (%(filename)s:%(lineno)s)'
-log_cli_date_format = '%Y-%m-%d %H:%M:%S'
-asyncio_mode = 'auto'
-asyncio_default_fixture_loop_scope = 'session'
+log_cli_level = "WARNING"
+log_cli_format = "%(asctime)s [%(levelname)8s] %(message)s (%(filename)s:%(lineno)s)"
+log_cli_date_format = "%Y-%m-%d %H:%M:%S"
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "session"
 
 [tool.black]
 line-length = 100
 skip-string-normalization = false
-target-version = ['py311']
+target-version = ["py311"]
 include = '\.pyi?$'
 extend-exclude = '''
 /(
@@ -67,7 +69,7 @@ extend-exclude = '''
 
 [tool.isort]
 line_length = 100
-profile = 'black'
+profile = "black"
 multi_line_output = 3
 
 [tool.mypy]
@@ -77,10 +79,10 @@ show_error_codes = true
 
 [tool.flake8]
 extend-ignore = [
-    'CF002',
-    'T002',
-    'W503', # conflicts with black
-    'E203'
+    "CF002",
+    "T002",
+    "W503", # conflicts with black
+    "E203",
 ]
 noqa-require-code = true
 max-line-length = 100
