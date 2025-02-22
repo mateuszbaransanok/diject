@@ -52,14 +52,14 @@ class ScopedProvider(ServiceProvider[T], ScopeProtocol[ScopedData[T]]):
         if scope is None:
             raise DIScopeError(f"'{self}' has to be called within scope")
 
-        with self.__lock:
+        async with self.__lock:
             if self in scope:
                 scoped_data = scope[self]
             else:
                 scoped_data = ScopedData()
                 scope[self] = scoped_data
 
-        with scoped_data.lock:
+        async with scoped_data.lock:
             if scoped_data.data is None:
                 obj, instance = await self.__acreate_object_and_instance__(scope)
                 scoped_data.data = obj, instance

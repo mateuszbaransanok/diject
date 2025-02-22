@@ -1,4 +1,3 @@
-import logging
 import threading
 from collections.abc import Callable, Iterator
 from typing import Any, Generic, ParamSpec, TypeVar, overload
@@ -16,8 +15,6 @@ from diject.utils.lock import Lock
 
 T = TypeVar("T")
 P = ParamSpec("P")
-
-LOG = logging.getLogger(__name__)
 
 
 class ThreadData(Generic[T]):
@@ -55,8 +52,7 @@ class ThreadProvider(ServiceProvider[T], StatusProtocol, ResetProtocol):
             try:
                 return self.__provide()
             except DIAsyncError:
-                LOG.error(_msg := f"'{self}' cannot provide asynchronous services")
-                raise DIAsyncError(_msg)
+                raise DIAsyncError(f"'{self}' cannot provide asynchronous services")
 
     def __provide(self) -> T:
         if not hasattr(self.__thread_data, "objects"):

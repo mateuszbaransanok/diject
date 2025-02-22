@@ -131,7 +131,7 @@ allowlist_externals =
     find
     sh
 commands =
-    mkdir -p {envtmpdir}/backup
+    mkdir -p {envtmpdir}/pyupgrade
     rsync --archive \
       --include='diject/' \
       --include='tests/' \
@@ -141,11 +141,11 @@ commands =
       --include='examples/***/' \
       --include='*.py' \
       --exclude='*' \
-      . {envtmpdir}/backup/
-    find {envtmpdir}/backup -name "*.py" -exec pyupgrade --py311 {} \;
-    sh -c 'diff_output=$(find diject -name "*.py" -exec diff {envtmpdir}/backup/{} {} \;); \
-           rm -rf {envtmpdir}/backup; \
-           if [ -n "$diff_output" ]; then echo "$diff_output"; exit 2; fi'
+      . {envtmpdir}/pyupgrade/
+    find {envtmpdir}/pyupgrade -name "*.py" -exec pyupgrade --py311 {} \;
+    sh -c 'diff_output=$(find diject tests examples -name "*.py" -exec diff {envtmpdir}/pyupgrade/{} {} \;); \
+           rm -rf {envtmpdir}/pyupgrade; \
+           if [ -n "$diff_output" ]; then echo "$diff_output"; exit 1; fi'
 
 [testenv:unittests]
 commands = pytest tests/unit/

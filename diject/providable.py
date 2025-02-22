@@ -610,8 +610,10 @@ def inject(func: Callable[..., Any]) -> Callable[..., Any]:
                         value = get_registered_provider(annot_args[0], module)
                     else:
                         value = EMPTY
-                else:
+                elif isinstance(param.annotation, type):
                     value = get_registered_provider(param.annotation, module)
+                else:
+                    value = EMPTY
 
             if not isinstance(value := provide_object(value, scope), Empty):
                 bound_params.arguments[param.name] = value
