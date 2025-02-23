@@ -40,6 +40,14 @@ __all__ = [
 __version__ = "0.7.1"
 
 Factory: CreatorPretenderBuilder[FactoryProvider]
+"""Factory to create instances
+
+Usage:
+```python
+some_func = Factory[func](arg1=1, arg2="arg2")
+```
+"""
+
 Mock: ProviderMockBuilder
 Object: ObjectPretenderBuilder
 Partial: PartialPretenderBuilder
@@ -49,7 +57,15 @@ Scoped: ServicePretenderBuilder[ScopedProvider]
 Selector: SelectorPretenderBuilder
 Singleton: ServicePretenderBuilder[SingletonProvider]
 Thread: ThreadPretenderBuilder
+
 Transient: ServicePretenderBuilder[TransientProvider]
+"""Transient to create instances within scope
+
+Usage:
+```python
+some_func = Transient[func](arg1=1, arg2="arg2")
+```
+"""
 
 
 def __getattr__(name: str) -> Any:

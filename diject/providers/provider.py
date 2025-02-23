@@ -8,6 +8,12 @@ T = TypeVar("T")
 
 
 class Provider(Generic[T], ABC):
+    """Initialize the instance.
+
+    Examples:
+        >>> PrintOK()  # doctest: +NORMALIZE_WHITESPACE
+        ok
+    """
     def __init__(self) -> None:
         self.__alias = ""
 
