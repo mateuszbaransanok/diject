@@ -27,6 +27,9 @@ classifiers = [
 dependencies = []
 
 [project.optional-dependencies]
+cicd = [
+    "tox==4.24.1",
+]
 test = [
     "black==25.1.0",
     "isort==6.0.0",
@@ -35,6 +38,9 @@ test = [
     "pytest-asyncio==0.25.3",
     "pytest==8.3.4",
     "pyupgrade==3.19.1",
+]
+release = [
+    "bump-my-version==0.32.2",
 ]
 
 [project.urls]
@@ -112,7 +118,7 @@ envlist =
 
 [testenv]
 deps =
-    -e .[test]
+    --editable .[test]
 
 [testenv:black]
 commands = black --check --diff diject/ tests/ examples/
@@ -135,14 +141,14 @@ allowlist_externals =
 commands =
     mkdir -p {envtmpdir}/pyupgrade
     rsync --archive \
-      --include='diject/' \
-      --include='tests/' \
-      --include='examples/' \
-      --include='diject/***/' \
-      --include='tests/***/' \
-      --include='examples/***/' \
-      --include='*.py' \
-      --exclude='*' \
+      --include="diject/" \
+      --include="tests/" \
+      --include="examples/" \
+      --include="diject/***/" \
+      --include="tests/***/" \
+      --include="examples/***/" \
+      --include="*.py" \
+      --exclude="*" \
       . {envtmpdir}/pyupgrade/
     find {envtmpdir}/pyupgrade -name "*.py" -exec pyupgrade --py311 {} \;
     sh -c 'diff_output=$(find diject tests examples -name "*.py" -exec diff {envtmpdir}/pyupgrade/{} {} \;); \

@@ -29,9 +29,9 @@ jobs:
         with:
           python-version: "3.11"
       - name: Install tox
-        run: python -m pip install --quiet tox
+        run: python -m pip install --quiet --editable .[cicd]
       - name: Run ${{ matrix.NAME }}
-        run: tox -e ${{ matrix.NAME }}
+        run: tox --env ${{ matrix.NAME }}
 
   unittests:
     runs-on: ubuntu-latest
@@ -43,7 +43,7 @@ jobs:
       - name: Install tox
         run: python -m pip install --quiet tox
       - name: Run unittests
-        run: tox -e unittests
+        run: tox --env unittests
 
   release_candidate:
     runs-on: ubuntu-latest
