@@ -33,6 +33,12 @@ TContainer = TypeVar("TContainer", bound=Container)
 
 
 class Providable(Generic[T]):
+    """Initialize the instance.
+
+    Examples:
+        >>> PrintOK()  # doctest: +NORMALIZE_WHITESPACE
+        ok
+    """
     def __init__(self, provider: Provider[T]) -> None:
         if not isinstance(provider, Provider):
             raise DITypeError(f"Argument 'provider' must be Provider type, not {type(provider)}")
@@ -566,6 +572,16 @@ class ProvidableBuilder:
 
 
 def inject(func: Callable[..., Any]) -> Callable[..., Any]:
+    """Decorator to inject providers
+
+    Usage:
+    ```python
+    @di.inject
+    def function(service: SomeService = MainContainer.service):
+        ...
+    ```
+    """
+
     def provide_object(obj: Any, scope: Scope) -> Any:
         if isinstance(obj, Provider):
             return obj.__provide__(scope)

@@ -1,0 +1,26 @@
+site_name: diject
+
+nav:
+  - Home: index.md
+  - About: about.md
+  - API Reference: api.md
+
+theme: readthedocs
+
+docs_dir: pages/
+site_dir: build/
+
+plugins:
+  - mkdocstrings:
+      handlers:
+        python:
+          paths:
+            - ../
+          options:
+            allow_inspection: true
+            show_source: false
+            docstring_style: google
+            show_root_heading: true
+            heading_level: 2
+            show_if_no_docstring: false
+            inherited_members: false
