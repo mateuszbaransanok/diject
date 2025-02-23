@@ -41,7 +41,7 @@ jobs:
         with:
           python-version: "3.11"
       - name: Install tox
-        run: python -m pip install --quiet tox
+        run: python -m pip install --quiet --editable .[cicd]
       - name: Run unittests
         run: tox -e unittests
 
@@ -65,12 +65,12 @@ jobs:
         run: |
           git config --global user.name "${{ github.actor }}"
           git config --global user.email "${{ github.actor }}@users.noreply.github.com"
-      - name: Install bump2version
-        run: |
-          git checkout -B release/candidate
-          pip install bump2version
+      - name: Checkout release branch
+        run: git checkout -B release/candidate
+      - name: Install cicd dependencies
+        run: python -m pip install --quiet --editable .[release]
       - name: Bump version
-        run: bump2version ${{ github.event.inputs.bump }}
+        run: bump-my-version bump ${{ github.event.inputs.bump }}
       - name: Push changes and create PR
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
