@@ -1,6 +1,5 @@
 from typing import Any
 
-from diject.providable import ProvidableBuilder, inject
 from diject.providers.container import Container
 from diject.providers.pretenders.creators.creator import CreatorPretenderBuilder
 from diject.providers.pretenders.creators.factory import FactoryProvider
@@ -12,8 +11,9 @@ from diject.providers.pretenders.creators.services.thread import ThreadPretender
 from diject.providers.pretenders.creators.services.transient import TransientProvider
 from diject.providers.pretenders.object import ObjectPretenderBuilder
 from diject.providers.pretenders.selector import SelectorPretenderBuilder
-from diject.utils.mock import ProviderMockBuilder, patch
-from diject.utils.partial import PartialPretenderBuilder
+from diject.tools.mock import ProviderMockBuilder, patch
+from diject.tools.partial import PartialPretenderBuilder
+from diject.tools.provide import DependencyBuilder, inject
 
 __all__ = [
     "Container",
@@ -29,43 +29,28 @@ __all__ = [
     "Thread",
     "Transient",
     "__version__",
-    "extensions",
     "inject",
+    "exceptions",
     "patch",
-    "providable",
+    "protocols",
     "providers",
+    "tools",
     "utils",
 ]
 
 __version__ = "0.7.1"
 
 Factory: CreatorPretenderBuilder[FactoryProvider]
-"""Factory to create instances
-
-Usage:
-```python
-some_func = Factory[func](arg1=1, arg2="arg2")
-```
-"""
-
 Mock: ProviderMockBuilder
 Object: ObjectPretenderBuilder
 Partial: PartialPretenderBuilder
-Provide: ProvidableBuilder
+Provide: DependencyBuilder
 Resource: ServicePretenderBuilder[ResourceProvider]
 Scoped: ServicePretenderBuilder[ScopedProvider]
 Selector: SelectorPretenderBuilder
 Singleton: ServicePretenderBuilder[SingletonProvider]
 Thread: ThreadPretenderBuilder
-
 Transient: ServicePretenderBuilder[TransientProvider]
-"""Transient to create instances within scope
-
-Usage:
-```python
-some_func = Transient[func](arg1=1, arg2="arg2")
-```
-"""
 
 
 def __getattr__(name: str) -> Any:
@@ -79,7 +64,7 @@ def __getattr__(name: str) -> Any:
         case "Partial":
             return PartialPretenderBuilder()
         case "Provide":
-            return ProvidableBuilder()
+            return DependencyBuilder()
         case "Resource":
             return ServicePretenderBuilder(ResourceProvider)
         case "Scoped":

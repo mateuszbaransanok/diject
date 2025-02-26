@@ -1,16 +1,9 @@
 from collections.abc import Iterator
-from typing import Any, Generic, Protocol, TypeVar, runtime_checkable
+from typing import Any, Generic, TypeVar
 
-T = TypeVar("T", contravariant=True)
+from diject.protocols.scope_protocol import ScopeProtocol
 
-
-@runtime_checkable
-class ScopeProtocol(Protocol[T]):
-    def __close__(self, data: T) -> None:
-        pass
-
-    async def __aclose__(self, data: T) -> None:
-        pass
+T = TypeVar("T")
 
 
 class Scope(Generic[T]):

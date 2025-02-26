@@ -1,8 +1,8 @@
-from abc import ABC
-from typing import TYPE_CHECKING, Any, TypeVar
+from abc import ABC, abstractmethod
+from typing import TYPE_CHECKING, Any, Generic, TypeVar
 
 from diject.providers.provider import Provider
-from diject.utils.repr import create_class_repr
+from diject.utils.types import create_class_repr
 
 if TYPE_CHECKING:
     from diject.providers.pretenders.attribute import AttributeProvider
@@ -41,6 +41,11 @@ class Pretender(ABC):
         return create_class_repr(self)
 
 
-class PretenderBuilder(ABC):
+class PretenderBuilder(Generic[T], ABC):
     def __repr__(self) -> str:
         return create_class_repr(self)
+
+    @property
+    @abstractmethod
+    def type(self) -> type[T]:
+        pass

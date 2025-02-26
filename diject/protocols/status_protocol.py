@@ -1,11 +1,6 @@
-from enum import StrEnum
 from typing import Protocol, runtime_checkable
 
-
-class Status(StrEnum):
-    STARTED = "started"
-    STOPPED = "stopped"
-    ERROR = "error"
+from diject.utils.status import Status
 
 
 @runtime_checkable

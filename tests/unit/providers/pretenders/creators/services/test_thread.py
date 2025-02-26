@@ -7,7 +7,7 @@ from unittest.mock import Mock
 import pytest
 
 import diject as di
-from diject.utils.exceptions import DIAsyncError
+from diject.exceptions import DIAsyncError
 
 
 def test_thread_provider__check_same_instance() -> None:

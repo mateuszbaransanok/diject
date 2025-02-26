@@ -5,7 +5,7 @@ from unittest.mock import Mock
 import pytest
 
 import diject as di
-from diject.utils.exceptions import DINotStartedError
+from diject.exceptions import DINotStartedError
 
 
 def test_resource_provider__raise_error_when_not_started() -> None:

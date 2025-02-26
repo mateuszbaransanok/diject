@@ -20,7 +20,7 @@ class MockContainer(di.Container):
     factory2 = di.Factory[MockClass](value="factory2")
 
 
-def test_providable__inject_by_register() -> None:
+def test_dependency__inject_by_register() -> None:
     di.Provide[MockContainer.factory1].register()
 
     @di.inject
@@ -32,7 +32,7 @@ def test_providable__inject_by_register() -> None:
     assert value == "MockClass(factory1)"
 
 
-def test_providable__inject_by_register__raise_error_on_duplicated() -> None:
+def test_dependency__inject_by_register__raise_error_on_duplicated() -> None:
     di.Provide[MockContainer].register()
 
     @di.inject
@@ -43,7 +43,7 @@ def test_providable__inject_by_register__raise_error_on_duplicated() -> None:
         func()
 
 
-def test_providable__inject_by_annotated_register() -> None:
+def test_dependency__inject_by_annotated_register() -> None:
     di.Provide[MockContainer].register()
 
     @di.inject
@@ -55,7 +55,7 @@ def test_providable__inject_by_annotated_register() -> None:
     assert value == "MockClass(factory1)"
 
 
-def test_providable__inject_by_annotated_explicit() -> None:
+def test_dependency__inject_by_annotated_explicit() -> None:
     @di.inject
     def func(mock: Annotated[MockClass, MockContainer.factory1]) -> str:
         return str(mock)
@@ -65,7 +65,7 @@ def test_providable__inject_by_annotated_explicit() -> None:
     assert value == "MockClass(factory1)"
 
 
-def test_providable__inject_by_explicit_default() -> None:
+def test_dependency__inject_by_explicit_default() -> None:
     @di.inject
     def func(mock: MockClass = MockContainer.factory1) -> str:
         return str(mock)
@@ -75,7 +75,7 @@ def test_providable__inject_by_explicit_default() -> None:
     assert value == "MockClass(factory1)"
 
 
-def test_providable__inject_with_call_override() -> None:
+def test_dependency__inject_with_call_override() -> None:
     @di.inject
     def func(mock: MockClass = MockContainer.factory1) -> str:
         return str(mock)
@@ -85,7 +85,7 @@ def test_providable__inject_with_call_override() -> None:
     assert value == "MockClass(factory2)"
 
 
-def test_providable__inject_with_string_annotation_registered__raise_error() -> None:
+def test_dependency__inject_with_string_annotation_registered__raise_error() -> None:
     di.Provide[MockContainer].register()
 
     @di.inject

@@ -3,12 +3,12 @@ import logging
 from collections.abc import AsyncIterator, Callable, Iterator
 from typing import Any, Generic, TypeVar
 
-from diject.extensions.scope import Scope, ScopeProtocol
+from diject.exceptions import DIScopeError
 from diject.providers.pretenders.creators.services.service import (
     ServiceProvider,
 )
-from diject.utils.exceptions import DIScopeError
 from diject.utils.lock import Lock
+from diject.utils.scope import Scope, ScopeProtocol
 
 T = TypeVar("T")
 

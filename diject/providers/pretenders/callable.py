@@ -2,11 +2,10 @@ import asyncio
 from collections.abc import Iterator
 from typing import Any, get_type_hints
 
-from diject.extensions.scope import Scope
 from diject.providers.pretenders.pretender import PretenderProvider
 from diject.providers.provider import Provider
-from diject.utils.convert import any_as_provider
-from diject.utils.repr import create_class_repr
+from diject.utils.scope import Scope
+from diject.utils.types import any_as_provider, create_class_repr
 
 
 class CallableProvider(PretenderProvider[Any]):

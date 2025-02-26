@@ -20,11 +20,11 @@ from typing import (
     overload,
 )
 
-from diject.extensions.scope import Scope
+from diject.exceptions import DIAsyncError
 from diject.providers.pretenders.creators.creator import CreatorProvider
 from diject.providers.pretenders.pretender import Pretender, PretenderBuilder
-from diject.utils.exceptions import DIAsyncError
-from diject.utils.repr import create_class_repr
+from diject.utils.scope import Scope
+from diject.utils.types import create_class_repr
 
 T = TypeVar("T")
 TServiceProvider = TypeVar("TServiceProvider", bound="ServiceProvider")
@@ -159,7 +159,7 @@ class ServicePretender(Pretender, Generic[T, TServiceProvider]):
         return self.__provider_cls(self.__callable, *args, **kwargs)
 
 
-class ServicePretenderBuilder(PretenderBuilder, Generic[TServiceProvider]):
+class ServicePretenderBuilder(PretenderBuilder[TServiceProvider]):
     def __init__(self, provider_cls: type[TServiceProvider]) -> None:
         self.__provider_cls = provider_cls
 
@@ -186,3 +186,7 @@ class ServicePretenderBuilder(PretenderBuilder, Generic[TServiceProvider]):
             provider_cls=self.__provider_cls,
             callable=callable,
         )
+
+    @property
+    def type(self) -> type[TServiceProvider]:
+        return self.__provider_cls

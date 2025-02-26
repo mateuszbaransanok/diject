@@ -3,8 +3,7 @@ import typing
 from functools import cache
 
 from diject.providers.provider import Provider
-from diject.utils.empty import EMPTY, Empty
-from diject.utils.types import is_custom_class
+from diject.utils.types import EMPTY, Empty, is_custom_class
 
 if typing.TYPE_CHECKING:
     from diject.providers.container import Container
@@ -14,7 +13,7 @@ __REGISTRY: dict[type | str, set[Provider | type["Container"]]] = {}
 __MODULES: dict[Provider | type["Container"], set[str]] = {}
 
 
-def register(
+def register_provider(
     provider: Provider | type["Container"],
     annotations: set[type] | list[type] | tuple[type, ...] | None = None,
     aliases: set[str] | list[str] | tuple[str, ...] | None = None,
@@ -34,7 +33,7 @@ def register(
         get_registered_provider.cache_clear()
 
 
-def unregister(provider: Provider | type["Container"]) -> None:
+def unregister_provider(provider: Provider | type["Container"]) -> None:
     with __LOCK:
         __MODULES.pop(provider, None)
 

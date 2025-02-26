@@ -5,10 +5,10 @@ from types import TracebackType
 from typing import Any, Generic, TypeVar, overload
 from unittest import mock
 
+from diject.exceptions import DINameError, DITypeError
 from diject.providers.container import Container
 from diject.providers.provider import Provider
-from diject.utils.exceptions import DINameError, DITypeError
-from diject.utils.repr import create_class_repr
+from diject.utils.types import create_class_repr
 
 T = TypeVar("T")
 TProvider = TypeVar("TProvider", bound=Provider[Any])
@@ -97,7 +97,7 @@ class ProviderMockPartial(Generic[T]):
         self.__target = target
 
     def __repr__(self) -> str:
-        return create_class_repr(self, self.__provider)
+        return create_class_repr(self, self.__provider, self.__target)
 
     def __call__(
         self,

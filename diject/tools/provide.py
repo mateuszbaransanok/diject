@@ -14,32 +14,43 @@ from typing import (
     overload,
 )
 
-from diject.extensions.reset import ResetProtocol
-from diject.extensions.scope import Scope
-from diject.extensions.start import StartProtocol
-from diject.extensions.status import Status, StatusProtocol
+from diject.exceptions import DIScopeError, DITypeError
+from diject.protocols.reset_protocol import ResetProtocol
+from diject.protocols.start_protocol import StartProtocol
+from diject.protocols.status_protocol import StatusProtocol
 from diject.providers.container import Container
 from diject.providers.pretenders.selector import SelectorProvider
 from diject.providers.provider import Provider
-from diject.utils.empty import EMPTY, Empty
-from diject.utils.exceptions import DIScopeError, DITypeError
 from diject.utils.lock import Lock
-from diject.utils.registry import get_registered_provider, register, unregister
-from diject.utils.repr import create_class_repr
+from diject.utils.registry import get_registered_provider, register_provider, unregister_provider
+from diject.utils.scope import Scope
+from diject.utils.status import Status
+from diject.utils.types import EMPTY, Empty, create_class_repr
 
 T = TypeVar("T")
 TProvider = TypeVar("TProvider", bound=Provider[Any])
 TContainer = TypeVar("TContainer", bound=Container)
 
 
-class Providable(Generic[T]):
-    """Initialize the instance.
+class Dependency(Generic[T]):
+    """A class that wraps a Provider to provide a clean interface for working with providers,
+    including context management, status retrieval, and traversal of related providers.
 
-    Examples:
-        >>> PrintOK()  # doctest: +NORMALIZE_WHITESPACE
-        ok
+    Attributes:
+        provider: The provider being wrapped by the Dependency.
+        __lock: A lock used to manage concurrent access.
+        __scope: The scope associated with the provider.
     """
+
     def __init__(self, provider: Provider[T]) -> None:
+        """Initializes the Dependency instance with the provided provider.
+
+        Args:
+            provider: A Provider instance to wrap.
+
+        Raises:
+            DITypeError: If the provided argument is not an instance of the Provider class.
+        """
         if not isinstance(provider, Provider):
             raise DITypeError(f"Argument 'provider' must be Provider type, not {type(provider)}")
 
@@ -51,12 +62,30 @@ class Providable(Generic[T]):
         return create_class_repr(self, self.__provider)
 
     def __call__(self) -> T:
+        """Calls the provider and returns the provided value.
+
+        Returns:
+            T: The value provided by the provider.
+        """
         return self.__provider.__provide__()
 
     def __await__(self) -> Generator[Any, None, T]:
+        """Calls the provider asynchronously and returns the provided value.
+
+        Returns:
+            Generator: A generator that yields the value provided by the provider.
+        """
         return self.__provider.__aprovide__().__await__()
 
     def __enter__(self) -> T:
+        """Enters the context manager and provides the provider's value.
+
+        Returns:
+            T: The value provided by the provider within the context.
+
+        Raises:
+            DIScopeError: If the scope has already been created.
+        """
         self.__lock.acquire()
 
         if self.__scope is not None:
@@ -67,6 +96,14 @@ class Providable(Generic[T]):
         return self.__provider.__provide__(self.__scope)
 
     async def __aenter__(self) -> T:
+        """Asynchronously enters the context manager and provides the provider's value.
+
+        Returns:
+            T: The value provided by the provider within the context.
+
+        Raises:
+            DIScopeError: If the scope has already been created.
+        """
         await self.__lock.aacquire()
 
         if self.__scope is not None:
@@ -82,6 +119,16 @@ class Providable(Generic[T]):
         exc_val: BaseException | None,
         exc_tb: TracebackType | None,
     ) -> None:
+        """Exits the context manager and closes the scope and associated providers.
+
+        Args:
+            exc_type: The exception type if one occurred.
+            exc_val: The exception value if one occurred.
+            exc_tb: The traceback if one occurred.
+
+        Raises:
+            DIScopeError: If the scope has not been created yet.
+        """
         if self.__scope is None:
             raise DIScopeError(f"{type(self).__name__}'s scope has not been created yet")
 
@@ -97,6 +144,16 @@ class Providable(Generic[T]):
         exc_val: BaseException | None,
         exc_tb: TracebackType | None,
     ) -> None:
+        """Asynchronously exits the context manager and closes the scope and associated providers.
+
+        Args:
+            exc_type: The exception type if one occurred.
+            exc_val: The exception value if one occurred.
+            exc_tb: The traceback if one occurred.
+
+        Raises:
+            DIScopeError: If the scope has not been created yet.
+        """
         if self.__scope is None:
             raise DIScopeError(f"{type(self).__name__}'s scope has not been created yet")
 
@@ -107,9 +164,23 @@ class Providable(Generic[T]):
 
     @property
     def provider(self) -> Provider[T]:
+        """Returns the wrapped provider.
+
+        Returns:
+            Provider[T]: The wrapped provider instance.
+        """
         return self.__provider
 
+    @property
     def status(self) -> Status:
+        """Returns the status of the provider.
+
+        Returns:
+            Status: The status of the provider.
+
+        Raises:
+            DITypeError: If the provider does not implement the StatusProtocol.
+        """
         if isinstance(self.__provider, StatusProtocol):
             return self.__provider.__status__()
         raise DITypeError("Provider do not have status")
@@ -143,6 +214,18 @@ class Providable(Generic[T]):
         only_public: bool = False,
         only_selected: bool = False,
     ) -> Any:
+        """
+        Traverses the provider and its sub-providers, yielding their names and types.
+
+        Args:
+            types: The types of providers to traverse.
+            recursive: Whether to traverse recursively.
+            only_public: Whether to include only public providers inside Container.
+            only_selected: Whether to include only selected providers.
+
+        Yields:
+            tuple[str, Provider[Any]]: The name and provider of each item found.
+        """
         yield from self.__travers(
             provider=self.__provider,
             types=types or cast(type[TProvider], Provider),
@@ -192,18 +275,37 @@ class Providable(Generic[T]):
             yield sub_name, sub_provider
 
     def start(self) -> None:
+        """Starts the providers.
+
+        This method initiates the provider by calling its internal start method
+        (if it supports the StartProtocol). It also ensures that all necessary
+        initialization tasks are completed for the provider.
+        """
         self.__start(
             provider=self.__provider,
             cache=set(),
         )
 
     async def astart(self) -> None:
+        """Asynchronously starts the providers.
+
+        This method asynchronously initiates the provider by calling its internal
+        start method (if it supports the StartProtocol). It ensures that any
+        asynchronous setup tasks for the provider are completed.
+        """
         await self.__astart(
             provider=self.__provider,
             cache=set(),
         )
 
     def shutdown(self) -> None:
+        """Resets the providers.
+
+        This method performs a graceful shutdown of the provider, calling its internal
+        reset method recursively if it supports the ResetProtocol. It ensures all
+        resources are released properly.
+        """
+
         self.__reset(
             provider=self.__provider,
             recursive=True,
@@ -211,6 +313,12 @@ class Providable(Generic[T]):
         )
 
     async def ashutdown(self) -> None:
+        """Asynchronously resets the providers.
+
+        This method asynchronously performs a graceful shutdown of the provider,
+        calling its internal reset method recursively (if it supports the
+        ResetProtocol) to ensure all resources are released asynchronously.
+        """
         await self.__areset(
             provider=self.__provider,
             recursive=True,
@@ -218,6 +326,12 @@ class Providable(Generic[T]):
         )
 
     def reset(self) -> None:
+        """Resets the provider.
+
+        This method resets the provider, calling its internal reset method without
+        recursion. This is typically used to reset the state of the provider to its
+        initial configuration.
+        """
         self.__reset(
             provider=self.__provider,
             recursive=False,
@@ -225,19 +339,16 @@ class Providable(Generic[T]):
         )
 
     async def areset(self) -> None:
+        """Asynchronously resets the provider.
+
+        This method asynchronously resets the provider, calling its internal reset
+        method without recursion to reset the provider's state.
+        """
         await self.__areset(
             provider=self.__provider,
             recursive=False,
             cache=set(),
         )
-
-    def restart(self) -> None:
-        self.reset()
-        self.start()
-
-    async def arestart(self) -> None:
-        await self.areset()
-        await self.astart()
 
     def register(
         self,
@@ -245,6 +356,20 @@ class Providable(Generic[T]):
         alias: str | tuple[str, ...] | set[str] | list[str] | None = None,
         wire: str | tuple[str, ...] | set[str] | list[str] | None = None,
     ) -> None:
+        """Registers the provider with annotations, aliases, and modules.
+
+        This method registers the provider with the given annotations, aliases, and
+        modules. It ensures that the provider is appropriately linked to other
+        components in the system, such as containers or other services.
+
+        Args:
+            annotation (type | tuple[type, ...] | set[type] | list[type] | None):
+                The type annotation(s) to associate with the provider.
+            alias (str | tuple[str, ...] | set[str] | list[str] | None):
+                The alias or aliases to register for the provider.
+            wire (str | tuple[str, ...] | set[str] | list[str] | None):
+                The module or modules to associate with the provider.
+        """
         aliases = {alias} if isinstance(alias, str) else set(alias) if alias else set()
         modules = {wire} if isinstance(wire, str) else set(wire) if wire else set()
 
@@ -264,7 +389,7 @@ class Providable(Generic[T]):
             else:
                 annotations = ()
 
-            register(
+            register_provider(
                 provider=self.__provider,
                 annotations=annotations,
                 aliases=aliases,
@@ -272,10 +397,15 @@ class Providable(Generic[T]):
             )
 
     def unregister(self) -> None:
+        """Unregisters the provider.
+
+        This method unregisters the provider from the system. If the provider is a
+        container, it will also unregister all providers contained within the container.
+        """
         if isinstance(self.__provider, Container):
             self.__unregister_container(type(self.__provider))
         else:
-            unregister(self.__provider)
+            unregister_provider(self.__provider)
 
     def __start(
         self,
@@ -505,7 +635,7 @@ class Providable(Generic[T]):
         container_modules = set(getattr(container, "__wire__", ()))
         container_modules.update(modules)
 
-        register(
+        register_provider(
             provider=container,
             annotations=(container,),
             aliases=aliases,
@@ -525,7 +655,7 @@ class Providable(Generic[T]):
                 else:
                     annot = provider.__type__()
 
-                register(
+                register_provider(
                     provider=provider,
                     annotations=annot.mro() if isinstance(annot, type) else (),
                     aliases={name, provider.__alias__},
@@ -533,29 +663,29 @@ class Providable(Generic[T]):
                 )
 
     def __unregister_container(self, container: type[Container]) -> None:
-        unregister(container)
+        unregister_provider(container)
 
         for name, provider in self.travers(only_public=True):
             if isinstance(provider, Container):
                 self.__unregister_container(container)
             else:
-                unregister(provider)
+                unregister_provider(provider)
 
 
-class ProvidableBuilder:
+class DependencyBuilder:
     def __repr__(self) -> str:
         return create_class_repr(self)
 
     @overload
-    def __getitem__(self, provider: type[TContainer]) -> Providable[TContainer]:
+    def __getitem__(self, provider: type[TContainer]) -> Dependency[TContainer]:
         pass
 
     @overload
-    def __getitem__(self, provider: Provider[T]) -> Providable[T]:
+    def __getitem__(self, provider: Provider[T]) -> Dependency[T]:
         pass
 
     @overload
-    def __getitem__(self, provider: T) -> Providable[T]:
+    def __getitem__(self, provider: T) -> Dependency[T]:
         pass
 
     def __getitem__(self, provider: Any) -> Any:
@@ -568,18 +698,23 @@ class ProvidableBuilder:
         if isinstance(provider, type) and issubclass(provider, Container):
             provider = provider()
 
-        return Providable(provider)
+        return Dependency(provider)
 
 
 def inject(func: Callable[..., Any]) -> Callable[..., Any]:
-    """Decorator to inject providers
+    """Decorator that injects dependencies into the function.
 
-    Usage:
-    ```python
-    @di.inject
-    def function(service: SomeService = MainContainer.service):
-        ...
-    ```
+    This decorator is used to inject providers into a function by resolving
+    the function's parameters and providing the necessary objects based on
+    their type annotations. It also supports both synchronous and asynchronous
+    functions.
+
+    Args:
+        func (Callable[..., Any]): The function to which the dependencies will
+            be injected.
+
+    Returns:
+        Callable[..., Any]: The wrapped function with dependencies injected.
     """
 
     def provide_object(obj: Any, scope: Scope) -> Any:
@@ -587,7 +722,7 @@ def inject(func: Callable[..., Any]) -> Callable[..., Any]:
             return obj.__provide__(scope)
         elif isinstance(obj, type) and issubclass(obj, Container):
             return obj().__provide__(scope)
-        elif isinstance(obj, Providable):
+        elif isinstance(obj, Dependency):
             return obj.provider.__provide__(scope)
         else:
             return EMPTY

@@ -3,14 +3,13 @@ from abc import ABC
 from collections.abc import Callable, Iterator
 from typing import Any, Generic, ParamSpec, TypeVar, get_type_hints, overload
 
-from diject.extensions.scope import Scope
+from diject.exceptions import DITypeError
 from diject.providers.pretenders.object import ObjectProvider
 from diject.providers.pretenders.pretender import Pretender, PretenderBuilder, PretenderProvider
 from diject.providers.provider import Provider
-from diject.utils.convert import any_as_provider
-from diject.utils.exceptions import DITypeError
-from diject.utils.partial import Partial
-from diject.utils.repr import create_class_repr
+from diject.tools.partial import Partial
+from diject.utils.scope import Scope
+from diject.utils.types import any_as_provider, create_class_repr
 
 T = TypeVar("T")
 TCreatorProvider = TypeVar("TCreatorProvider", bound="CreatorProvider")
@@ -103,7 +102,7 @@ class CreatorPretender(Pretender, Generic[T, TCreatorProvider]):
         return self.__provider_cls(self.__callable, *args, **kwargs)
 
 
-class CreatorPretenderBuilder(PretenderBuilder, Generic[TCreatorProvider]):
+class CreatorPretenderBuilder(PretenderBuilder[TCreatorProvider]):
     def __init__(self, provider_cls: type[TCreatorProvider]) -> None:
         self.__provider_cls = provider_cls
 
@@ -123,3 +122,7 @@ class CreatorPretenderBuilder(PretenderBuilder, Generic[TCreatorProvider]):
             provider_cls=self.__provider_cls,
             callable=callable,
         )
+
+    @property
+    def type(self) -> type[TCreatorProvider]:
+        return self.__provider_cls

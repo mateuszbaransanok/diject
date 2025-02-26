@@ -2,16 +2,17 @@ import threading
 from collections.abc import Callable, Iterator
 from typing import Any, Generic, ParamSpec, TypeVar, overload
 
-from diject.extensions.reset import ResetProtocol
-from diject.extensions.scope import Scope
-from diject.extensions.status import Status, StatusProtocol
+from diject.exceptions import DIAsyncError
+from diject.protocols.reset_protocol import ResetProtocol
+from diject.protocols.status_protocol import StatusProtocol
 from diject.providers.pretenders.creators.services.service import (
     ServicePretender,
     ServiceProvider,
 )
 from diject.providers.pretenders.pretender import PretenderBuilder
-from diject.utils.exceptions import DIAsyncError
 from diject.utils.lock import Lock
+from diject.utils.scope import Scope
+from diject.utils.status import Status
 
 T = TypeVar("T")
 P = ParamSpec("P")
@@ -86,7 +87,7 @@ class ThreadProvider(ServiceProvider[T], StatusProtocol, ResetProtocol):
                 self.__thread_data = threading.local()
 
 
-class ThreadPretenderBuilder(PretenderBuilder):
+class ThreadPretenderBuilder(PretenderBuilder[ThreadProvider]):
     @overload
     def __getitem__(  # type: ignore[overload-overlap]
         self,
@@ -107,3 +108,7 @@ class ThreadPretenderBuilder(PretenderBuilder):
             provider_cls=ThreadProvider,
             callable=callable,
         )
+
+    @property
+    def type(self) -> type[ThreadProvider]:
+        return ThreadProvider

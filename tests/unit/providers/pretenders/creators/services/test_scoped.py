@@ -6,7 +6,7 @@ import pytest
 
 import diject as di
 from diject import ScopedProvider
-from diject.utils.exceptions import DIScopeError
+from diject.exceptions import DIScopeError
 
 
 class MockClass:

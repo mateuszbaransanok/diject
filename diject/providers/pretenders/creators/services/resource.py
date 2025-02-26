@@ -2,16 +2,17 @@ import logging
 from collections.abc import AsyncIterator, Callable, Iterator
 from typing import Any, Generic, TypeVar
 
-from diject.extensions.reset import ResetProtocol
-from diject.extensions.scope import Scope
-from diject.extensions.start import StartProtocol
-from diject.extensions.status import Status, StatusProtocol
+from diject.exceptions import DINotStartedError
+from diject.protocols.reset_protocol import ResetProtocol
+from diject.protocols.start_protocol import StartProtocol
+from diject.protocols.status_protocol import StatusProtocol
 from diject.providers.pretenders.creators.services.service import (
     ServiceProvider,
 )
-from diject.utils.empty import EMPTY, Empty
-from diject.utils.exceptions import DINotStartedError
 from diject.utils.lock import Lock
+from diject.utils.scope import Scope
+from diject.utils.status import Status
+from diject.utils.types import EMPTY, Empty
 
 T = TypeVar("T")
 

@@ -1,13 +1,12 @@
 from collections.abc import Callable, Iterator
 from typing import Any, Generic, TypeVar
 
-from diject.extensions.reset import ResetProtocol
-from diject.extensions.scope import Scope
+from diject.exceptions import DIEmptyObjectError
+from diject.protocols.reset_protocol import ResetProtocol
 from diject.providers.pretenders.pretender import Pretender, PretenderBuilder, PretenderProvider
 from diject.providers.provider import Provider
-from diject.utils.empty import EMPTY, Empty
-from diject.utils.exceptions import DIEmptyObjectError
-from diject.utils.repr import create_class_repr
+from diject.utils.scope import Scope
+from diject.utils.types import EMPTY, Empty, create_class_repr
 
 T = TypeVar("T")
 
@@ -55,9 +54,13 @@ class ObjectPretender(Pretender, Generic[T]):
         return ObjectProvider(obj)  # type: ignore[return-value]
 
 
-class ObjectPretenderBuilder(PretenderBuilder):
+class ObjectPretenderBuilder(PretenderBuilder[ObjectProvider]):
     def __getitem__(self, object_type: Callable[..., T]) -> ObjectPretender[T]:
         return ObjectPretender()
 
     def __call__(self, obj: T) -> T:
         return ObjectProvider(obj)  # type: ignore[return-value]
+
+    @property
+    def type(self) -> type[ObjectProvider]:
+        return ObjectProvider

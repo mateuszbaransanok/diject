@@ -395,7 +395,7 @@ You can retrieve the status of a Resource to determine whether it has started, s
 or if an error occurred during startup:
 
 ```python
-di.Provide[some_resource].status()
+di.Provide[some_resource].status
 ```
 
 ### Get provider

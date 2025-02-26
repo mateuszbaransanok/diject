@@ -4,32 +4,12 @@ from abc import ABCMeta
 from collections.abc import Iterator
 from typing import Any, TypeVar
 
-from diject.extensions.scope import Scope
 from diject.providers.pretenders.object import ObjectProvider
 from diject.providers.provider import Provider
-from diject.utils.convert import obj_as_provider
+from diject.utils.scope import Scope
+from diject.utils.types import obj_as_provider
 
 TProvider = TypeVar("TProvider", bound=Provider[Any])
-
-
-def _as_provider(name: str, key: str, value: Any) -> Any:
-    if not (
-        key.startswith("__")
-        or isinstance(value, (classmethod, staticmethod, property))
-        or (
-            isinstance(value, types.FunctionType)
-            and value.__qualname__.startswith(f"{name}.")
-            and not value.__qualname__.startswith(f"{name}.<lambda>")
-        )
-        or isinstance(value, Provider)
-        or (isinstance(value, type) and issubclass(value, Container))
-    ):
-        value = obj_as_provider(value)
-
-    if isinstance(value, Provider):
-        value.__alias__ = f"{name}.{key}"
-
-    return value
 
 
 class MetaContainer(ABCMeta):
@@ -39,8 +19,24 @@ class MetaContainer(ABCMeta):
         parents: tuple[type, ...],
         attributes: dict[str, Any],
     ) -> "MetaContainer":
-        __attributes = {key: _as_provider(name, key, value) for key, value in attributes.items()}
-        return super().__new__(cls, name, parents, __attributes)
+        for key, value in attributes.items():
+            if not (
+                key.startswith("__")
+                or isinstance(value, (classmethod, staticmethod, property))
+                or (
+                    isinstance(value, types.FunctionType)
+                    and value.__qualname__.startswith(f"{name}.")
+                    and not value.__qualname__.startswith(f"{name}.<lambda>")
+                )
+                or isinstance(value, Provider)
+                or (isinstance(value, type) and issubclass(value, Container))
+            ):
+                attributes[key] = value = obj_as_provider(value)
+
+            if isinstance(value, Provider):
+                value.__alias__ = f"{name}.{key}"
+
+        return super().__new__(cls, name, parents, attributes)
 
     def __setattr__(cls, key: str, value: Any) -> None:
         if hasattr(cls, key):
@@ -65,9 +61,27 @@ class MetaContainer(ABCMeta):
 
 
 class Container(Provider["Container"], metaclass=MetaContainer):
+    """Containers group related dependencies together. They are defined by subclassing di.Container:
+
+    ```python
+    class MainContainer(di.Container):
+        service = di.Factory[Service]()
+    ```
+
+    You can inject an entire container so that its attributes are automatically
+    provided within the same scope:
+
+    ```python
+    with di.Provide[MainContainer] as container:
+        service = container.service  # <-- container provide service object
+        # Use some_instance within this block
+        pass
+    ```
+    """
+
     def __init__(self) -> None:
         super().__init__()
-        self.__is_providable = False
+        self.__is_dependency = False
         self.__scope: Scope | None = None
 
     def __getattribute__(self, name: str) -> Any:
@@ -75,7 +89,7 @@ class Container(Provider["Container"], metaclass=MetaContainer):
         if (
             not name.startswith("__")
             and not name.startswith("_Container__")
-            and self.__is_providable
+            and self.__is_dependency
         ):
             if isinstance(obj, Provider):
                 return obj.__provide__(self.__scope)
@@ -115,7 +129,7 @@ class Container(Provider["Container"], metaclass=MetaContainer):
 
     def __provide__(self, scope: Scope | None = None) -> "Container":
         container = type(self)()
-        container.__is_providable = True
+        container.__is_dependency = True
         container.__scope = scope
         return container
 

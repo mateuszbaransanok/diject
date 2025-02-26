@@ -1,7 +1,7 @@
 from collections.abc import Callable
 from typing import Any, Generic, TypeVar
 
-from diject.utils.repr import create_class_repr
+from diject.utils.types import create_class_repr
 
 T = TypeVar("T")
 

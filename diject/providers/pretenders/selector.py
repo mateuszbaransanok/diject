@@ -4,19 +4,19 @@ from contextlib import contextmanager
 from types import TracebackType
 from typing import Any, Generic, TypeVar
 
-from diject.extensions.reset import ResetProtocol
-from diject.extensions.scope import Scope
-from diject.extensions.status import Status, StatusProtocol
+from diject.exceptions import DISelectorError, DITypeError
+from diject.protocols.reset_protocol import ResetProtocol
+from diject.protocols.status_protocol import StatusProtocol
 from diject.providers.pretenders.pretender import (
     Pretender,
     PretenderBuilder,
     PretenderProvider,
 )
 from diject.providers.provider import Provider
-from diject.utils.convert import any_as_provider
-from diject.utils.exceptions import DISelectorError, DITypeError
 from diject.utils.lock import Lock
-from diject.utils.repr import create_class_repr
+from diject.utils.scope import Scope
+from diject.utils.status import Status
+from diject.utils.types import any_as_provider, create_class_repr
 
 T = TypeVar("T")
 
@@ -241,6 +241,10 @@ class SelectorPretender(Pretender, Generic[T]):
         self.__group_selector = None
 
 
-class SelectorPretenderBuilder(PretenderBuilder):
+class SelectorPretenderBuilder(PretenderBuilder[SelectorProvider]):
     def __getitem__(self, selector: str) -> SelectorPretender:
         return SelectorPretender(selector)
+
+    @property
+    def type(self) -> type[SelectorProvider]:
+        return SelectorProvider

@@ -1,7 +1,7 @@
 from typing import TypeVar
 
-from diject.extensions.scope import Scope
 from diject.providers.pretenders.creators.creator import CreatorProvider
+from diject.utils.scope import Scope
 
 T = TypeVar("T")
 
