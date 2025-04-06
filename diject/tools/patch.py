@@ -56,19 +56,16 @@ class Patch:
         @functools.wraps(func)
         def sync_wrapper(*args: Any, **kwargs: Any) -> Any:
             with Patch(self._provider, **self._kwargs):
-                result = func(*args, **kwargs)
-            return result
+                return func(*args, **kwargs)
 
         @functools.wraps(func)
         async def async_wrapper(*args: Any, **kwargs: Any) -> Any:
             with Patch(self._provider, **self._kwargs):
-                result = await func(*args, **kwargs)
-            return result
+                return await func(*args, **kwargs)
 
         if inspect.iscoroutinefunction(func):
             return async_wrapper
-        else:
-            return sync_wrapper
+        return sync_wrapper
 
     def __enter__(self) -> None:
         for attr, mock_obj in self._kwargs.items():

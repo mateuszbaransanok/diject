@@ -17,7 +17,7 @@ class MockContainer(di.Container):
     scoped_scope = di.Scoped[lambda value: (yield MockClass(value))](value="scoped_scope")
     scoped1 = di.Scoped[MockClass](value="scoped1")
     scoped2 = di.Scoped[MockClass](value="scoped2")
-    sequence = [scoped1, scoped1, scoped1, scoped2, scoped2, scoped2]
+    sequence: list = [scoped1, scoped1, scoped1, scoped2, scoped2, scoped2]
 
 
 def test_scoped_provider__check_same_instance_within_scope() -> None:

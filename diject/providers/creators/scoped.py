@@ -15,7 +15,7 @@ class ScopedProvider(CreatorProvider[T]):
             return self.__create__(allow_generator=False).instance
 
         if self in context.store:
-            data = cast(ContextItem, context.store[self])
+            data = cast("ContextItem", context.store[self])
         else:
             data = ContextItem()
             context.store[self] = data
@@ -34,7 +34,7 @@ class ScopedProvider(CreatorProvider[T]):
 
         async with context.async_lock:
             if self in context.store:
-                data = cast(ContextItem, context.store[self])
+                data = cast("ContextItem", context.store[self])
             else:
                 data = ContextItem()
                 context.store[self] = data

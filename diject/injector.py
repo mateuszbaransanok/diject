@@ -128,12 +128,11 @@ class Injector:
 
         if inspect.iscoroutinefunction(func):
             return async_wrapper
-        elif inspect.isasyncgenfunction(func):
+        if inspect.isasyncgenfunction(func):
             return async_generator
-        elif inspect.isgeneratorfunction(func):
+        if inspect.isgeneratorfunction(func):
             return sync_generator
-        else:
-            return sync_wrapper
+        return sync_wrapper
 
     def __enter__(self) -> Context | None:
         return self.open()

@@ -18,7 +18,6 @@ def to_safe_string(obj: Any) -> str:
     string = str(obj)
     if isinstance(obj, (str, bool, int, float)):
         return string
-    elif len(string) > 50:
+    if len(string) > 50:
         return string[:47] + "..."
-    else:
-        return string
+    return string

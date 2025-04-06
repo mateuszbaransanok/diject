@@ -30,7 +30,7 @@ class DictProvider(Provider[dict[KT, VT]]):
 
     async def __aprovide_dependency__(self) -> dict[KT, VT]:
         values = await asyncio.gather(*(value.__aprovide__() for value in self.__object.values()))
-        return {key: value for key, value in zip(self.__object, values, strict=True)}
+        return dict(zip(self.__object, values, strict=True))
 
 
 class DictPretender(Pretender, Generic[KT, VT]):

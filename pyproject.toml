@@ -3,7 +3,6 @@ name = "diject"
 version = "0.7.1"
 description = "A powerful dependency injection framework that automatically injects objects, promoting loose coupling, improving testability, and centralizing configuration for easier maintenance."
 readme = "README.md"
-requires-python = ">=3.11"
 license = { file = "LICENSE" }
 keywords = ["Dependency Injection"]
 authors = [
@@ -23,30 +22,48 @@ classifiers = [
     "Operating System :: OS Independent",
     "License :: OSI Approved :: MIT License",
 ]
-
+requires-python = ">=3.11"
 dependencies = []
 
-[project.optional-dependencies]
-test = [
-    "black==25.1.0",
-    "isort==6.0.0",
+[dependency-groups]
+dev = [
+    "ruff==0.11.4",
     "mypy==1.15.0",
-    "pyproject-flake8==7.0.0",
     "pytest-asyncio==0.25.3",
     "pytest==8.3.4",
-    "pyupgrade==3.19.1",
 ]
 docs = [
     "mkdocs-material==9.6.5",
     "mkdocs==1.6.1",
     "mkdocstrings[python]==0.28.1",
 ]
+release = [
+    "bump-my-version==1.1.1",
+]
+deploy = [
+    "build==1.2.2",
+]
 
 [project.urls]
 repository = "https://github.com/mateuszbaransanok/diject"
 
+[tool.bumpversion]
+current_version = "0.7.1"
+commit = true
+message = "Release v{new_version}"
+
+[[tool.bumpversion.files]]
+filename = "diject/__init__.py"
+search = "__version__ = \"{current_version}\""
+replace = "__version__ = \"{new_version}\""
+
+[[tool.bumpversion.files]]
+filename = "uv.lock"
+search = "name = \"diject\"\nversion = \"{current_version}\""
+replace = "name = \"diject\"\nversion = \"{new_version}\""
+
 [tool.pytest.ini_options]
-norecursedirs = ".git .tox .ipynb_checkpoints .cache .mypy_cache"
+norecursedirs = ".git .tox .mypy_cache .pytest_cache .ruff_cache .venv .vscode .idea __pycache__"
 log_cli = true
 log_cli_level = "WARNING"
 log_cli_format = "%(asctime)s [%(levelname)8s] %(message)s (%(filename)s:%(lineno)s)"
@@ -54,106 +71,70 @@ log_cli_date_format = "%Y-%m-%d %H:%M:%S"
 asyncio_mode = "auto"
 asyncio_default_fixture_loop_scope = "session"
 
-[tool.black]
-line-length = 100
-skip-string-normalization = false
-target-version = ["py311"]
-include = '\.pyi?$'
-extend-exclude = '''
-/(
-     __pycache__
-    |\.mypy_cache
-    |\.pytest_cache
-    |\.tox
-    |env
-    |venv
-    |\.env
-    |.venv
-)/
-'''
-
-[tool.isort]
-line_length = 100
-profile = "black"
-multi_line_output = 3
-
 [tool.mypy]
 disallow_untyped_defs = true
 ignore_missing_imports = true
 show_error_codes = true
 
-[tool.flake8]
-extend-ignore = [
-    "CF002",
-    "T002",
-    "W503", # conflicts with black
-    "E203",
+[tool.ruff]
+exclude = [
+    ".git",
+    ".mypy_cache",
+    ".pytest_cache",
+    ".ruff_cache",
+    ".tox",
+    ".venv",
+    ".vscode",
+    ".idea",
+    "__pycache__",
 ]
-noqa-require-code = true
-max-line-length = 100
-exclude = '''
-__pycache__
-.mypy_cache
-.pytest_cache
-.tox
-env
-venv
-.env
-.venv
-'''
+line-length = 120
+indent-width = 4
+target-version = "py310"
 
-[tool.tox]
-legacy_tox_ini = '''
-[tox]
-skipsdist = true
-parallel = true
-envlist =
-    black
-    isort
-    flake
-    mypy
-    pyupgrade
-    unittests
+[tool.ruff.lint]
+select = ["ALL"]
+ignore = [
+    "A001", # Variable `callable` is shadowing a Python builtin
+    "A002", # Function argument `callable` is shadowing a Python builtin
+    "ANN401", # Dynamically typed expressions (typing.Any) are disallowed in ...
+    "B007", # Loop control variable ... not used within loop body
+    "B028", # No explicit `stacklevel` keyword argument found
+    "B904", # Within an `except` clause, raise exceptions with `raise ... from err` or `raise ... from None` to distinguish them from errors in exception handling
+    "BLE001", # Do not catch blind exception: `Exception`
+    "C901", # ... is too complex
+    "D100", # Missing docstring in public module
+    "D101", # Missing docstring in public class
+    "D102", # Missing docstring in public method
+    "D103", # Missing docstring in public function
+    "D104", # Missing docstring in public package
+    "D105", # Missing docstring in magic method
+    "D107", # Missing docstring in `__init__`
+    "D203", # Incorrect blank line before class
+    "D213", # Multi line summary second line
+    "EM101", # Exception must not use a string literal, assign to variable first
+    "EM102", # Exception must not use an f-string literal, assign to variable first
+    "FIX002", # Line contains TO DO, consider resolving the issue
+    "INP001", # File ... is part of an implicit namespace package. Add an `__init__.py`
+    "N818", # Exception name `DIErrorWrapper` should be named with an Error suffix
+    "PLR0911", # Too many return statements
+    "PLR0913", # Too many arguments in function definition
+    "PLR0915", # Too many statements
+    "PLR2004", # Magic value used in comparison, consider replacing ... with a constant variable
+    "RUF012", # Mutable class attributes should be annotated with `typing.ClassVar`
+    "S101", # Use of `assert` detected,
+    "S311", # Standard pseudo-random generators are not suitable for cryptographic purposes
+    "T201", # `print` found
+    "TC001", # Move application import ... into a type-checking block
+    "TD002", #  Missing author in TO DO
+    "TRY003", # Avoid specifying long messages outside the exception class
+]
+fixable = ["ALL"]
 
-[testenv]
-deps =
-    -e .[test]
-
-[testenv:black]
-commands = black --check --diff diject/ tests/ examples/
-
-[testenv:isort]
-commands = isort --check --diff diject/ tests/ examples/
-
-[testenv:flake]
-commands = pflake8 diject/ tests/ examples/
-
-[testenv:mypy]
-commands = mypy --install-types --non-interactive --no-namespace-packages diject/ tests/ examples/
-
-[testenv:pyupgrade]
-allowlist_externals =
-    mkdir
-    rsync
-    find
-    sh
-commands =
-    mkdir -p {envtmpdir}/pyupgrade
-    rsync --archive \
-      --include='diject/' \
-      --include='tests/' \
-      --include='examples/' \
-      --include='diject/***/' \
-      --include='tests/***/' \
-      --include='examples/***/' \
-      --include='*.py' \
-      --exclude='*' \
-      . {envtmpdir}/pyupgrade/
-    find {envtmpdir}/pyupgrade -name "*.py" -exec pyupgrade --py311 {} \;
-    sh -c 'diff_output=$(find diject tests examples -name "*.py" -exec diff {envtmpdir}/pyupgrade/{} {} \;); \
-           rm -rf {envtmpdir}/pyupgrade; \
-           if [ -n "$diff_output" ]; then echo "$diff_output"; exit 1; fi'
-
-[testenv:unittests]
-commands = pytest tests/unit/
-'''
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+skip-magic-trailing-comma = false
+line-ending = "auto"
+docstring-code-format = false
+docstring-code-line-length = "dynamic"

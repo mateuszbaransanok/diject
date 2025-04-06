@@ -20,5 +20,4 @@ class ChatService:
             n_results=self._n_chunks,
         )
         text = "-".join(chunks) + "_" + message
-        result = self._model.complete(text)
-        return result
+        return self._model.complete(text)

@@ -11,11 +11,10 @@ def any_as_provider(obj: Any) -> Provider:
 
     if isinstance(obj, Provider):
         return obj
-    elif (obj_type := type(obj)) is dict:
+    if (obj_type := type(obj)) is dict:
         return DictProvider(obj)
-    elif obj_type is list:
+    if obj_type is list:
         return ListProvider(obj)
-    elif obj_type is tuple:
+    if obj_type is tuple:
         return TupleProvider(obj)
-    else:
-        return ObjectProvider(obj)
+    return ObjectProvider(obj)

@@ -24,8 +24,7 @@ class Provider(Generic[T], ABC):
     def __str__(self) -> str:
         if self.__alias__:
             return f"{self.__alias__} ({type(self).__qualname__})"
-        else:
-            return type(self).__qualname__
+        return type(self).__qualname__
 
     def __call__(self, *args: Any, **kwargs: Any) -> "CallableProvider":
         from diject.providers.interactions.callable import CallableProvider
@@ -40,15 +39,14 @@ class Provider(Generic[T], ABC):
     def __getattr__(self, name: str) -> "AttributeProvider":
         if name.startswith("__"):
             return super().__getattribute__(name)  # type: ignore[no-any-return]
-        else:
-            from diject.providers.interactions.attribute import AttributeProvider
+        from diject.providers.interactions.attribute import AttributeProvider
 
-            attribute_provider = AttributeProvider(self, name)
+        attribute_provider = AttributeProvider(self, name)
 
-            if self.__alias__:
-                attribute_provider.__alias__ = f"{self.__alias__}.{name}"
+        if self.__alias__:
+            attribute_provider.__alias__ = f"{self.__alias__}.{name}"
 
-            return attribute_provider
+        return attribute_provider
 
     def __getitem__(self, key: Any) -> "ItemProvider":
         from diject.providers.interactions.item import ItemProvider
@@ -158,7 +156,7 @@ class Provider(Generic[T], ABC):
         pass
 
 
-class Pretender(ABC):
+class Pretender:
     def __repr__(self) -> str:
         return create_class_repr(self)
 

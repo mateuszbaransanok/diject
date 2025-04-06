@@ -19,7 +19,7 @@ class CallableProvider(Provider):
 
     def __repr__(self) -> str:
         return create_class_repr(
-            self, self.__callable, *self.__args.__object__, **self.__kwargs.__object__
+            self, self.__callable, *self.__args.__object__, **self.__kwargs.__object__,
         )
 
     def __propagate_alias__(self, alias: str) -> None:

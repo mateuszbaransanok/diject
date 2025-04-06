@@ -44,12 +44,12 @@ class MetaContainer(ABCMeta):
                 warnings.warn(
                     "Do not change already defined provider (except `di.Object`), "
                     "because this can lead to unpredictable behavior. "
-                    "If you want to replace this provider for testing purposes, use `di.patch`."
+                    "If you want to replace this provider for testing purposes, use `di.patch`.",
                 )
         elif isinstance(value, Provider):
             warnings.warn(
                 "All providers should be defined in the container body, "
-                "no new providers should be defined dynamically."
+                "no new providers should be defined dynamically.",
             )
         else:
             super().__setattr__(name, value)
@@ -98,9 +98,10 @@ class Container(metaclass=MetaContainer):
 
         Yields:
             tuple[str, Provider]: The name and provider of each item found.
+
         """
         try:
-            yield from cls.__travers_container(
+            yield from cls.__travers__(
                 types=types or Provider,
                 recursive=recursive,
                 only_public=only_public,
@@ -111,15 +112,16 @@ class Container(metaclass=MetaContainer):
             raise exc.origin from exc.caused_by
 
     @classmethod
-    def __travers_container(
+    def __travers__(
         cls,
+        *,
         types: type[TProvider] | tuple[type[TProvider], ...],
         recursive: bool,
         only_public: bool,
         only_selected: bool,
         cache: set[Provider],
     ) -> Iterator[tuple[str, Provider]]:
-        for name, obj in cls.__iter_container(only_public=only_public):
+        for name, obj in cls.__iter(only_public=only_public):
             if isinstance(obj, Provider):
                 yield from functions.travers_provider(
                     name=name,
@@ -130,7 +132,7 @@ class Container(metaclass=MetaContainer):
                     cache=cache,
                 )
             elif recursive and isinstance(obj, type) and issubclass(obj, Container):
-                yield from obj.__travers_container(
+                yield from obj.__travers__(
                     types=types,
                     recursive=recursive,
                     only_public=only_public,
@@ -180,9 +182,10 @@ class Container(metaclass=MetaContainer):
 
         Yields:
             tuple[str, Provider]: The name and provider of each item found.
+
         """
         try:
-            async for name, provider in cls.__atravers_container(
+            async for name, provider in cls.__atravers__(
                 types=types or Provider,
                 recursive=recursive,
                 only_public=only_public,
@@ -195,8 +198,9 @@ class Container(metaclass=MetaContainer):
             raise exc.origin from exc.caused_by
 
     @classmethod
-    async def __atravers_container(
+    async def __atravers__(
         cls,
+        *,
         types: type[TProvider] | tuple[type[TProvider], ...],
         recursive: bool,
         only_public: bool,
@@ -204,7 +208,7 @@ class Container(metaclass=MetaContainer):
         lock: asyncio.Lock,
         cache: set[Provider],
     ) -> AsyncIterator[tuple[str, Provider]]:
-        for name, obj in cls.__iter_container(only_public=only_public):
+        for name, obj in cls.__iter(only_public=only_public):
             if isinstance(obj, Provider):
                 async for _name, _provider in functions.atravers_provider(
                     name=name,
@@ -217,7 +221,7 @@ class Container(metaclass=MetaContainer):
                 ):
                     yield _name, _provider
             elif recursive and isinstance(obj, type) and issubclass(obj, Container):
-                async for _name, _provider in obj.__atravers_container(
+                async for _name, _provider in obj.__atravers__(
                     types=types,
                     recursive=recursive,
                     only_public=only_public,
@@ -229,99 +233,102 @@ class Container(metaclass=MetaContainer):
 
     @classmethod
     def start(cls) -> None:
-        """Starts the providers.
+        """Start the providers.
 
         This method initiates the provider by calling its internal start method
         (if it supports the StartProtocol). It also ensures that all necessary
         initialization tasks are completed for the provider.
         """
         try:
-            cls.__start_container()
+            cls.__start__()
         except DIErrorWrapper as exc:
             raise exc.origin from exc.caused_by
 
     @classmethod
-    def __start_container(cls) -> None:
-        for name, obj in cls.__iter_container(only_public=True):
-            if isinstance(obj, Provider):
+    def __start__(cls) -> None:
+        for name, obj in cls.__iter(only_public=True):
+            if (
+                isinstance(obj, Provider)
+                or (isinstance(obj, type) and issubclass(obj, Container))
+            ):
                 obj.__start__()
-            elif isinstance(obj, type) and issubclass(obj, Container):
-                obj.__start_container()
 
     @classmethod
     async def astart(cls) -> None:
-        """Starts the providers.
+        """Start the providers.
 
         This method initiates the provider by calling its internal start method
         (if it supports the StartProtocol). It also ensures that all necessary
         initialization tasks are completed for the provider.
         """
         try:
-            await cls.__astart_container()
+            await cls.__astart__()
         except DIErrorWrapper as exc:
             raise exc.origin from exc.caused_by
 
     @classmethod
-    async def __astart_container(cls) -> None:
-        coroutines = []
-
-        for name, obj in cls.__iter_container(only_public=True):
-            if isinstance(obj, Provider):
-                coroutines.append(obj.__astart__())
-            elif isinstance(obj, type) and issubclass(obj, Container):
-                coroutines.append(obj.__astart_container())
-
-        await asyncio.gather(*coroutines)
+    async def __astart__(cls) -> None:
+        await asyncio.gather(
+            *(
+                obj.__astart__()
+                for name, obj in cls.__iter(only_public=True)
+                if (
+                    isinstance(obj, Provider)
+                    or (isinstance(obj, type) and issubclass(obj, Container))
+                )
+            ),
+        )
 
     @classmethod
     def shutdown(cls) -> None:
-        """Resets the providers.
+        """Reset the providers.
 
         This method performs a graceful shutdown of the provider, calling its internal
         reset method recursively if it supports the ResetProtocol. It ensures all
         resources are released properly.
         """
         try:
-            cls.__shutdown_container()
+            cls.__shutdown__()
         except DIErrorWrapper as exc:
             raise exc.origin from exc.caused_by
 
     @classmethod
-    def __shutdown_container(cls) -> None:
-        for name, obj in cls.__iter_container(only_public=True):
-            if isinstance(obj, Provider):
+    def __shutdown__(cls) -> None:
+        for name, obj in cls.__iter(only_public=True):
+            if (
+                isinstance(obj, Provider)
+                or (isinstance(obj, type) and issubclass(obj, Container))
+            ):
                 obj.__shutdown__()
-            elif isinstance(obj, type) and issubclass(obj, Container):
-                obj.__shutdown_container()
 
     @classmethod
     async def ashutdown(cls) -> None:
-        """Shutdowns the providers.
+        """Shutdown the providers.
 
         This method initiates the provider by calling its internal shutdown method
         (if it supports the ShutdownProtocol). It also ensures that all necessary
         initialization tasks are completed for the provider.
         """
-
         try:
-            await cls.__ashutdown_container()
+            await cls.__ashutdown__()
         except DIErrorWrapper as exc:
             raise exc.origin from exc.caused_by
 
     @classmethod
-    async def __ashutdown_container(cls) -> None:
-        coroutines = []
-
-        for name, obj in cls.__iter_container(only_public=True):
-            if isinstance(obj, Provider):
-                coroutines.append(obj.__ashutdown__())
-            elif isinstance(obj, type) and issubclass(obj, Container):
-                coroutines.append(obj.__ashutdown_container())
-
-        await asyncio.gather(*coroutines)
+    async def __ashutdown__(cls) -> None:
+        await asyncio.gather(
+            *(
+                obj.__ashutdown__()
+                for name, obj in cls.__iter(only_public=True)
+                if (
+                    isinstance(obj, Provider)
+                    or (isinstance(obj, type) and issubclass(obj, Container))
+                )
+            ),
+        )
 
     @classmethod
-    def __iter_container(cls, only_public: bool = False) -> Iterator[tuple[str, Any]]:
+    def __iter(cls, *, only_public: bool = False) -> Iterator[tuple[str, Any]]:
         for name in list(vars(cls)):
             if not ((only_public and name.startswith("_")) or name.startswith("__")):
                 yield name, getattr(cls, name)

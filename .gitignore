@@ -1,11 +1,15 @@
 .git/
 .tox/
 .mypy_cache/
+.pytest_cache
+.ruff_cache/
 
 __pycache__/
 *.egg-info/
 dist/
 build/
+.venv/
 
 .DS_Store
 .idea/
+.vscode/

@@ -1,3 +1,4 @@
+import diject as di
 from chatbot.core.chat_service import ChatService
 from chatbot.core.repository import Repository
 from chatbot.gateways.databases.in_memory.in_memory_database import InMemoryDatabase
@@ -5,8 +6,6 @@ from chatbot.gateways.databases.in_memory.in_memory_repository import InMemoryRe
 from chatbot.gateways.databases.postgres.postgres_database import PostgresDatabase
 from chatbot.gateways.databases.postgres.postgres_repository import PostgresRepository
 from chatbot.gateways.llm_providers.azure_llm_provider import AzureLlmProvider
-
-import diject as di
 
 
 class Databases(di.Container):

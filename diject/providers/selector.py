@@ -41,7 +41,7 @@ class SelectorProvider(Provider[T]):
         except KeyError:
             raise DISelectorError(
                 f"Invalid option '{self.__option}'. "
-                f"Available options for {self}: {', '.join(self.__providers)}"
+                f"Available options for {self}: {', '.join(self.__providers)}",
             )
 
     async def __aselected__(self) -> Provider[T]:
@@ -54,11 +54,12 @@ class SelectorProvider(Provider[T]):
             except KeyError:
                 raise DISelectorError(
                     f"Invalid option '{self.__option}'. "
-                    f"Available options for {self}: {', '.join(self.__providers)}"
+                    f"Available options for {self}: {', '.join(self.__providers)}",
                 )
 
     def __travers__(
         self,
+        *,
         only_selected: bool = False,
     ) -> Iterator[tuple[str, Provider]]:
         yield "?", self.__selector
@@ -73,6 +74,7 @@ class SelectorProvider(Provider[T]):
 
     async def __atravers__(
         self,
+        *,
         only_selected: bool = False,
     ) -> AsyncIterator[tuple[str, Provider]]:
         yield "?", self.__selector

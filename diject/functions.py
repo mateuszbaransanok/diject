@@ -76,6 +76,7 @@ def travers(
 
 
 def _travers(
+    *,
     provider: Provider,
     types: type | tuple[type, ...],
     recursive: bool,
@@ -99,6 +100,7 @@ def _travers(
 
 
 def travers_provider(
+    *,
     name: str,
     provider: Provider,
     types: type | tuple[type, ...],
@@ -167,6 +169,7 @@ async def atravers(
 
 
 async def _atravers(
+    *,
     provider: Provider,
     types: type | tuple[type, ...],
     recursive: bool,
@@ -201,6 +204,7 @@ async def _atravers(
 
 
 async def atravers_provider(
+    *,
     name: str,
     provider: Provider,
     types: type | tuple[type, ...],
@@ -316,7 +320,7 @@ async def ashutdown(obj: Any, /) -> None:
 # INJECTOR -----------------------------------------------------------------------------------------
 @overload
 def inject(
-    func: Callable[P, T], *, reuse_context: bool = True
+    func: Callable[P, T], *, reuse_context: bool = True,
 ) -> Callable[P, T] | Callable[..., T]:
     pass
 
@@ -331,8 +335,7 @@ def inject(func: Any | None = None, *, reuse_context: bool = True) -> Any:
 
     if func is None:
         return injector
-    else:
-        return injector(func)
+    return injector(func)
 
 
 # PATCH --------------------------------------------------------------------------------------------

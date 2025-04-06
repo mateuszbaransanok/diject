@@ -15,7 +15,7 @@ class TransientProvider(CreatorProvider[T]):
             return self.__create__(allow_generator=False).instance
 
         if self in context.store:
-            data = cast(ContextList, context.store[self])
+            data = cast("ContextList", context.store[self])
         else:
             data = ContextList()
             context.store[self] = data
@@ -33,7 +33,7 @@ class TransientProvider(CreatorProvider[T]):
 
         async with context.async_lock:
             if self in context.store:
-                data = cast(ContextList, context.store[self])
+                data = cast("ContextList", context.store[self])
             else:
                 data = ContextList()
                 context.store[self] = data
