@@ -4,6 +4,7 @@ from types import TracebackType
 from typing import Any, Generic, TypeVar
 
 from diject.exceptions import DISelectorError, DITypeError
+from diject.injector import Injector
 from diject.providers.provider import Pretender, PretenderBuilder, Provider
 from diject.utils.cast import any_as_provider
 from diject.utils.status import Status
@@ -34,7 +35,16 @@ class SelectorProvider(Provider[T]):
 
     def __selected__(self) -> Provider[T]:
         if self.__option is None:
-            self.__option = self.__selector.__provide__()
+            try:
+                with Injector(reuse_context=False):
+                    option = self.__selector.__provide__()
+            finally:
+                self.__selector.__shutdown__()
+
+            if isinstance(option, str):
+                self.__option = option
+            else:
+                raise DITypeError(f"Selector must be 'str' type; not '{type(option).__name__}'")
 
         try:
             return self.__providers[self.__option]
@@ -45,25 +55,54 @@ class SelectorProvider(Provider[T]):
             )
 
     async def __aselected__(self) -> Provider[T]:
-        async with self.__lock__:
-            if self.__option is None:
-                self.__option = await self.__selector.__aprovide__()
-
+        if self.__option is None:
             try:
-                return self.__providers[self.__option]
-            except KeyError:
-                raise DISelectorError(
-                    f"Invalid option '{self.__option}'. "
-                    f"Available options for {self}: {', '.join(self.__providers)}",
-                )
+                async with Injector(reuse_context=False):
+                    option = await self.__selector.__aprovide__()
+            finally:
+                await self.__selector.__ashutdown__()
+
+            if isinstance(option, str):
+                self.__option = option
+            else:
+                raise DITypeError(f"Selector must be 'str' type; not '{type(option).__name__}'")
+
+        try:
+            return self.__providers[self.__option]
+        except KeyError:
+            raise DISelectorError(
+                f"Invalid option '{self.__option}'. "
+                f"Available options for {self}: {', '.join(self.__providers)}",
+            )
 
     def __travers__(
         self,
         *,
         only_selected: bool = False,
     ) -> Iterator[tuple[str, Provider]]:
-        yield "?", self.__selector
+        try:
+            yield from self.__travers_dependency__(only_selected=only_selected)
+        except Exception:
+            self.__status = Status.CORRUPTED
+            raise
 
+    async def __atravers__(
+        self,
+        *,
+        only_selected: bool = False,
+    ) -> AsyncIterator[tuple[str, Provider]]:
+        try:
+            async for name, provider in self.__atravers_dependency__(only_selected=only_selected):
+                yield name, provider
+        except Exception:
+            self.__status = Status.CORRUPTED
+            raise
+
+    def __travers_dependency__(
+        self,
+        *,
+        only_selected: bool = False,
+    ) -> Iterator[tuple[str, Provider]]:
         if only_selected:
             with self.__lock__:
                 selected = self.__selected__()
@@ -72,13 +111,13 @@ class SelectorProvider(Provider[T]):
             for option, provider in self.__providers.items():
                 yield f"[{option}]", provider
 
-    async def __atravers__(
+        yield "?", self.__selector
+
+    async def __atravers_dependency__(
         self,
         *,
         only_selected: bool = False,
     ) -> AsyncIterator[tuple[str, Provider]]:
-        yield "?", self.__selector
-
         if only_selected:
             async with self.__lock__:
                 selected = await self.__aselected__()
@@ -86,6 +125,8 @@ class SelectorProvider(Provider[T]):
         else:
             for option, provider in self.__providers.items():
                 yield f"[{option}]", provider
+
+        yield "?", self.__selector
 
     def __provide_dependency__(self) -> T:
         with self.__lock__:
@@ -98,12 +139,10 @@ class SelectorProvider(Provider[T]):
         return await selected.__aprovide__()
 
     def __start_dependency__(self) -> None:
-        self.__selector.__start__()
         selected = self.__selected__()
         selected.__start__()
 
     async def __astart_dependency__(self) -> None:
-        await self.__selector.__astart__()
         selected = await self.__aselected__()
         await selected.__astart__()
 
@@ -111,8 +150,7 @@ class SelectorProvider(Provider[T]):
         with self.__lock__:
             if self.__status__ is not Status.IDLE:
                 if self.__option is not None:
-                    self.__selector.__shutdown__()
-                    if self.__option is self.__providers:
+                    if self.__option in self.__providers:
                         self.__providers[self.__option].__shutdown__()
                     self.__option = None
                 self.__status__ = Status.IDLE
@@ -121,8 +159,7 @@ class SelectorProvider(Provider[T]):
         async with self.__lock__:
             if self.__status__ is not Status.IDLE:
                 if self.__option is not None:
-                    await self.__selector.__ashutdown__()
-                    if self.__option is self.__providers:
+                    if self.__option in self.__providers:
                         await self.__providers[self.__option].__ashutdown__()
                     self.__option = None
                 self.__status__ = Status.IDLE

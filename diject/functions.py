@@ -113,9 +113,6 @@ def travers_provider(
 
     cache.add(provider)
 
-    if isinstance(provider, types):
-        yield name, provider
-
     if recursive:
         yield from _travers(
             provider=provider,
@@ -124,6 +121,9 @@ def travers_provider(
             only_selected=only_selected,
             cache=cache,
         )
+
+    if isinstance(provider, types):
+        yield name, provider
 
 
 @overload
@@ -219,9 +219,6 @@ async def atravers_provider(
 
         cache.add(provider)
 
-    if isinstance(provider, types):
-        yield name, provider
-
     if recursive:
         async for sub_name, sub_provider in _atravers(
             provider=provider,
@@ -232,6 +229,9 @@ async def atravers_provider(
             cache=cache,
         ):
             yield sub_name, sub_provider
+
+    if isinstance(provider, types):
+        yield name, provider
 
 
 # PROVIDE ------------------------------------------------------------------------------------------

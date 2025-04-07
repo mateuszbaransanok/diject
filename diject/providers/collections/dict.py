@@ -22,7 +22,7 @@ class DictProvider(Provider[dict[KT, VT]]):
     def __object__(self) -> dict[KT, Provider[VT]]:
         return self.__object.copy()
 
-    def __travers__(self) -> Iterator[tuple[str, Provider]]:
+    def __travers_dependency__(self) -> Iterator[tuple[str, Provider]]:
         yield from ((to_safe_string(key), value) for key, value in self.__object.items())
 
     def __provide_dependency__(self) -> dict[KT, VT]:

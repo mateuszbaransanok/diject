@@ -32,14 +32,13 @@ The above code creates a global variable holding the database instance.
 Diject allows you to define a lifecycle for the database instance:
 
 ```python
-class MainContainer(di.Container):
-    database = di.Singleton[Database](
-        uri="db://production",
-    )
-    
-    service = di.Transient[Service](
-        db=database,
-    )
+database_provider = di.Singleton[Database](
+    uri="db://production",
+)
+
+service_provider = di.Transient[Service](
+    db=database_provider,
+)
 ```
 
 When using an object-creating provider (e.g., `di.Singleton`), you first specify the function or
@@ -95,10 +94,10 @@ transformed into Providers.
 
 ## Managing Providers
 
-To interact with a provider, use `di.Provide`, which offers functions to manage the provider:
+To provide dependency, use `di.provide`:
 
 ```python
-database_dependency = di.Provide[database_provider]
+database_dependency = di.provide[database_provider]
 ```
 
 `database_dependency` is an instance of `Dependency`, enabling various operations on the given

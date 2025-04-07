@@ -33,7 +33,7 @@ class ObjectProvider(Provider[T]):
             self.__object = obj
             self.__status__ = Status.RUNNING
 
-    def __travers__(self) -> Iterator[tuple[str, Provider]]:
+    def __travers_dependency__(self) -> Iterator[tuple[str, Provider]]:
         yield from ()
 
     def __provide_dependency__(self) -> T:

@@ -135,7 +135,7 @@ class Injector:
         return sync_wrapper
 
     def __enter__(self) -> Context | None:
-        return self.open()
+        return self._create_context()
 
     def __exit__(
         self,
@@ -143,31 +143,6 @@ class Injector:
         exc_val: BaseException | None,
         exc_tb: TracebackType | None,
     ) -> None:
-        self.close()
-
-    async def __aenter__(self) -> Context | None:
-        return self.open()
-
-    async def __aexit__(
-        self,
-        exc_type: type[BaseException] | None,
-        exc_val: BaseException | None,
-        exc_tb: TracebackType | None,
-    ) -> None:
-        await self.aclose()
-
-    @classmethod
-    def get_context(cls) -> Context | None:
-        return cls._CONTEXT.get()
-
-    def open(self) -> Context | None:
-        if not (self._reuse_context and self._CONTEXT.get()):
-            self._context = Context()
-            self._token = self._CONTEXT.set(self._context)
-
-        return self._context
-
-    def close(self) -> None:
         if self._context and self._close_context:
             self._context.close()
             self._context = None
@@ -176,7 +151,15 @@ class Injector:
             self._CONTEXT.reset(self._token)
             self._token = None
 
-    async def aclose(self) -> None:
+    async def __aenter__(self) -> Context | None:
+        return self._create_context()
+
+    async def __aexit__(
+        self,
+        exc_type: type[BaseException] | None,
+        exc_val: BaseException | None,
+        exc_tb: TracebackType | None,
+    ) -> None:
         if self._context and self._close_context:
             await self._context.aclose()
             self._context = None
@@ -184,3 +167,14 @@ class Injector:
         if self._token:
             self._CONTEXT.reset(self._token)
             self._token = None
+
+    @classmethod
+    def get_context(cls) -> Context | None:
+        return cls._CONTEXT.get()
+
+    def _create_context(self) -> Context | None:
+        if not (self._reuse_context and self._CONTEXT.get()):
+            self._context = Context()
+            self._token = self._CONTEXT.set(self._context)
+
+        return self._context

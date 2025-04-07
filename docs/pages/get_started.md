@@ -43,8 +43,7 @@ A typical **diject**-powered project using Hexagonal Architecture might be struc
 my_project/
 │── src/
 │   ├── core/           # Core business logic (entities, services)
-│   ├── adapters/       # Implementations for core abstractions (repositories, LLM providers)
-│   ├── gateways/       # Low-level connections (database, API clients)
+│   ├── gateways/       # Low-level connections and core abstractions (database, LLM providers)
 │   ├── apps/           # Service layer (CLI application, REST API)
 │   ├── containers/     # Dependency injection containers (project configuration)
 │

@@ -27,10 +27,14 @@ class Repositories(di.Container):
         repository = GroupSelector[Repository]()
 
     with GroupSelector == "in_memory" as Option:
-        Option[repository] = di.Singleton[InMemoryRepository]()
+        Option[repository] = di.Singleton[InMemoryRepository](
+            database=Databases.in_memory,
+        )
 
     with GroupSelector == "postgres" as Option:
-        Option[repository] = di.Scoped[PostgresRepository]()
+        Option[repository] = di.Scoped[PostgresRepository](
+            database=Databases.postgres,
+        )
 
 
 class Services(di.Container):

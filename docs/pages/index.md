@@ -55,14 +55,10 @@ class Database:
 class Service:
     def __init__(self) -> None:
         self.db = Database()  # <-- dependency
-        
-    def get_users(self) -> list[str]:
-        return ["John", "Adam"] 
 
 
 def main() -> None:
     service = Service()  # <-- dependency
-    users = service.get_users()
     # some logic here...
     ...
 
@@ -96,13 +92,9 @@ class Database:
 class Service:
     def __init__(self, db: Database) -> None:  # <-- dependency is injected
         self.db = db
-        
-    def get_users(self) -> list[str]:
-        return ["John", "Adam"] 
 
 
 def main(service: Service) -> None:  # <-- dependency is injected
-    users = service.get_users()
     # some logic here...
     ...
 
@@ -149,9 +141,6 @@ class Database:
 class Service:
     def __init__(self, db: Database) -> None:  # <-- dependency is injected
         self.db = db
-        
-    def get_users(self) -> list[str]:
-        return ["John", "Adam"] 
 
 
 class MainContainer(di.Container):  # <-- container for configuration
@@ -165,14 +154,13 @@ class MainContainer(di.Container):  # <-- container for configuration
 
 
 @di.inject
-def main() -> None:
-    users = MainContainer.service.get_users()  # <-- injecting dependency
+def main(service: Service = MainContainer.service) -> None:  # <-- injecting dependency
     # some logic here...
     ...
 
 
 if __name__ == "__main__":
-    main()
+    main()  # <-- dependency is injected automatically
 ```
 
 This example demonstrates how **diject** simplifies dependency management in Python applications by

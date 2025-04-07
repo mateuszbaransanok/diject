@@ -58,7 +58,7 @@ class CreatorProvider(Provider[T], ABC):
     def __repr__(self) -> str:
         return create_class_repr(self, self.__callable, *self.__args__, **self.__kwargs__)
 
-    def __travers__(self) -> Iterator[tuple[str, Provider]]:
+    def __travers_dependency__(self) -> Iterator[tuple[str, Provider]]:
         yield from self.__args.__travers__()
         yield from self.__kwargs.__travers__()
 

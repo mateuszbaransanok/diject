@@ -21,7 +21,7 @@ class ItemProvider(Provider):
         for name, provider in self.__travers__():
             provider.__alias__ = f"{alias}{name}"
 
-    def __travers__(self) -> Iterator[tuple[str, Provider]]:
+    def __travers_dependency__(self) -> Iterator[tuple[str, Provider]]:
         yield "{[]}", self.__provider
         yield "[]", self.__item
 

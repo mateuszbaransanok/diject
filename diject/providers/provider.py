@@ -84,9 +84,12 @@ class Provider(Generic[T], ABC):
         for name, provider in self.__travers__():
             provider.__alias__ = f"{alias}.{name}"
 
-    @abstractmethod
     def __travers__(self) -> Iterator[tuple[str, "Provider"]]:
-        pass
+        try:
+            yield from self.__travers_dependency__()
+        except Exception:
+            self.__status = Status.CORRUPTED
+            raise
 
     def __provide__(self) -> T:
         try:
@@ -111,14 +114,24 @@ class Provider(Generic[T], ABC):
     def __start__(self) -> None:
         with self.__lock:
             if self.__status is not Status.RUNNING:
-                self.__start_dependency__()
-                self.__status = Status.RUNNING
+                try:
+                    self.__start_dependency__()
+                except Exception:
+                    self.__status = Status.CORRUPTED
+                    raise
+                else:
+                    self.__status = Status.RUNNING
 
     async def __astart__(self) -> None:
         async with self.__lock:
             if self.__status is not Status.RUNNING:
-                await self.__astart_dependency__()
-                self.__status = Status.RUNNING
+                try:
+                    await self.__astart_dependency__()
+                except Exception:
+                    self.__status = Status.CORRUPTED
+                    raise
+                else:
+                    self.__status = Status.RUNNING
 
     def __shutdown__(self) -> None:
         with self.__lock:
@@ -133,6 +146,10 @@ class Provider(Generic[T], ABC):
             if self.__status is not Status.IDLE:
                 await self.__ashutdown_dependency__()
                 self.__status = Status.IDLE
+
+    @abstractmethod
+    def __travers_dependency__(self) -> Iterator[tuple[str, "Provider"]]:
+        pass
 
     @abstractmethod
     def __provide_dependency__(self) -> T:

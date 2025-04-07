@@ -21,7 +21,7 @@ class TupleProvider(Provider[tuple[T, ...]]):
     def __object__(self) -> tuple[Provider[T], ...]:
         return self.__object
 
-    def __travers__(self) -> Iterator[tuple[str, Provider]]:
+    def __travers_dependency__(self) -> Iterator[tuple[str, Provider]]:
         yield from ((str(i), v) for i, v in enumerate(self.__object))
 
     def __provide_dependency__(self) -> tuple[T, ...]:
