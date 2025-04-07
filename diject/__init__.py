@@ -1,78 +1,93 @@
 from typing import Any
 
-from diject.providable import ProvidableBuilder, inject
-from diject.providers.container import Container
-from diject.providers.pretenders.creators.creator import CreatorPretenderBuilder
-from diject.providers.pretenders.creators.factory import FactoryProvider
-from diject.providers.pretenders.creators.services.resource import ResourceProvider
-from diject.providers.pretenders.creators.services.scoped import ScopedProvider
-from diject.providers.pretenders.creators.services.service import ServicePretenderBuilder
-from diject.providers.pretenders.creators.services.singleton import SingletonProvider
-from diject.providers.pretenders.creators.services.thread import ThreadPretenderBuilder
-from diject.providers.pretenders.creators.services.transient import TransientProvider
-from diject.providers.pretenders.object import ObjectPretenderBuilder
-from diject.providers.pretenders.selector import SelectorPretenderBuilder
-from diject.utils.mock import ProviderMockBuilder, patch
-from diject.utils.partial import PartialPretenderBuilder
+from diject.container import Container
+from diject.functions import (
+    alias,
+    aprovide,
+    ashutdown,
+    astart,
+    atravers,
+    inject,
+    patch,
+    provide,
+    shutdown,
+    start,
+    status,
+    travers,
+)
+from diject.providers.collections.dict import DictPretenderBuilder
+from diject.providers.collections.list import ListPretenderBuilder
+from diject.providers.collections.tuple import TuplePretenderBuilder
+from diject.providers.creators.creator import CreatorPretenderBuilder
+from diject.providers.creators.scoped import ScopedProvider
+from diject.providers.creators.singleton import SingletonProvider
+from diject.providers.creators.transient import TransientProvider
+from diject.providers.object import ObjectPretenderBuilder
+from diject.providers.selector import SelectorPretenderBuilder
+from diject.tools.partial import PartialPretenderBuilder
 
 __all__ = [
     "Container",
-    "Factory",
-    "Mock",
+    "Dict",
+    "List",
     "Object",
     "Partial",
-    "Provide",
-    "Resource",
     "Scoped",
     "Selector",
     "Singleton",
-    "Thread",
     "Transient",
+    "Tuple",
     "__version__",
-    "extensions",
+    "alias",
+    "aprovide",
+    "ashutdown",
+    "astart",
+    "atravers",
+    "container",
+    "exceptions",
+    "functions",
     "inject",
     "patch",
-    "providable",
+    "provide",
     "providers",
+    "shutdown",
+    "start",
+    "status",
+    "tools",
+    "travers",
     "utils",
 ]
 
 __version__ = "0.7.1"
 
-Factory: CreatorPretenderBuilder[FactoryProvider]
-Mock: ProviderMockBuilder
+Dict: DictPretenderBuilder
+List: ListPretenderBuilder
 Object: ObjectPretenderBuilder
 Partial: PartialPretenderBuilder
-Provide: ProvidableBuilder
-Resource: ServicePretenderBuilder[ResourceProvider]
-Scoped: ServicePretenderBuilder[ScopedProvider]
+Scoped: CreatorPretenderBuilder[ScopedProvider]
 Selector: SelectorPretenderBuilder
-Singleton: ServicePretenderBuilder[SingletonProvider]
-Thread: ThreadPretenderBuilder
-Transient: ServicePretenderBuilder[TransientProvider]
+Singleton: CreatorPretenderBuilder[SingletonProvider]
+Transient: CreatorPretenderBuilder[TransientProvider]
+Tuple: TuplePretenderBuilder
 
 
 def __getattr__(name: str) -> Any:
     match name:
-        case "Factory":
-            return CreatorPretenderBuilder(FactoryProvider)
-        case "Mock":
-            return ProviderMockBuilder()
+        case "Dict":
+            return DictPretenderBuilder()
+        case "List":
+            return ListPretenderBuilder()
         case "Object":
             return ObjectPretenderBuilder()
         case "Partial":
             return PartialPretenderBuilder()
-        case "Provide":
-            return ProvidableBuilder()
-        case "Resource":
-            return ServicePretenderBuilder(ResourceProvider)
         case "Scoped":
-            return ServicePretenderBuilder(ScopedProvider)
+            return CreatorPretenderBuilder(ScopedProvider)
         case "Selector":
             return SelectorPretenderBuilder()
         case "Singleton":
-            return ServicePretenderBuilder(SingletonProvider)
-        case "Thread":
-            return ThreadPretenderBuilder()
+            return CreatorPretenderBuilder(SingletonProvider)
         case "Transient":
-            return ServicePretenderBuilder(TransientProvider)
+            return CreatorPretenderBuilder(TransientProvider)
+        case "Tuple":
+            return TuplePretenderBuilder()

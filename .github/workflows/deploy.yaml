@@ -1,0 +1,21 @@
+name: Deploy
+
+on:
+  push:
+    tags:
+      - "v*.*.*"
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+      - name: Install build
+        run: uv sync --only-group deploy
+      - name: Build package
+        run: uv run python -m build
+      - name: Publish package
+        uses: pypa/gh-action-pypi-publish@v1.12.4

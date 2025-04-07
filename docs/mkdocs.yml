@@ -1,0 +1,36 @@
+site_name: diject
+
+nav:
+  - Get started: get_started.md
+  - Concept: concept.md
+  - Container: container.md
+  - Providers: providers.md
+  - Tools: tools.md
+
+theme: readthedocs
+
+docs_dir: pages/
+site_dir: build/
+
+plugins:
+  - search
+  - autorefs
+  - mkdocstrings:
+      handlers:
+        python:
+          paths:
+            - ../
+          options:
+            allow_inspection: true
+            docstring_style: google
+            heading_level: 2
+            inherited_members: false
+            line_length: 100
+            separate_signature: true
+            show_if_no_docstring: false
+            show_overloads: true
+            show_root_heading: true
+            show_signature: true
+            show_signature_annotations: true
+            show_source: false
+            signature_crossrefs: true
