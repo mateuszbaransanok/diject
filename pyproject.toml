@@ -1,6 +1,6 @@
 [project]
 name = "diject"
-version = "0.7.1"
+version = "0.8.0"
 description = "A powerful dependency injection framework that automatically injects objects, promoting loose coupling, improving testability, and centralizing configuration for easier maintenance."
 readme = "README.md"
 license = { file = "LICENSE" }
@@ -48,7 +48,7 @@ deploy = [
 repository = "https://github.com/mateuszbaransanok/diject"
 
 [tool.bumpversion]
-current_version = "0.7.1"
+current_version = "0.8.0"
 commit = true
 message = "Release v{new_version}"
 
