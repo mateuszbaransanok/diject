@@ -14,7 +14,4 @@ build:
        - uv sync --only-group docs
     build:
        html:
-          - NO_COLOR=1 uv run mkdocs build --strict --site-dir $READTHEDOCS_OUTPUT/html
-
-mkdocs:
-  configuration: docs/mkdocs.yml
+          - NO_COLOR=1 uv run mkdocs build --strict -config-file docs/mkdocs.yml --site-dir $READTHEDOCS_OUTPUT/html

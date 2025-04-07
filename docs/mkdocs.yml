@@ -4,7 +4,6 @@ nav:
   - Get started: get_started.md
   - Concept: concept.md
   - Providers: providers.md
-  - Interfaces: interfaces.md
   - Custom provider: custom_provider.md
   - Examples: examples.md
 
