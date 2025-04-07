@@ -29,6 +29,7 @@ def alias(obj: Any, /) -> str:
 
     Raises:
         DITypeError: If the provided object is not an instance of Provider.
+
     """
     if not isinstance(obj, Provider):
         raise DITypeError(f"Object {type(obj).__qualname__} is not Provider")
@@ -52,6 +53,7 @@ def status(obj: Any, /) -> Status:
 
     Raises:
         DITypeError: If the provided object is not an instance of Provider.
+
     """
     if not isinstance(obj, Provider):
         raise DITypeError(f"Object {type(obj).__qualname__} is not Provider")
@@ -90,12 +92,17 @@ def travers(
     """Traverses the provider and its sub-providers.
 
     Args:
+        obj: The Provider instance.
         types: The types of providers to traverse.
         recursive: Whether to traverse recursively.
         only_selected: Whether to include only selected providers.
 
     Yields:
         tuple[str, Provider]: The name and provider of each item found.
+
+    Raises:
+        DITypeError: If the object is not an instance of Provider.
+
     """
     if not isinstance(obj, Provider):
         raise DITypeError(f"Object {type(obj).__qualname__} is not Provider")
@@ -194,12 +201,17 @@ async def atravers(
     """Traverses the provider asynchronously and its sub-providers.
 
     Args:
+        obj: The Provider instance.
         types: The types of providers to traverse.
         recursive: Whether to traverse recursively.
         only_selected: Whether to include only selected providers.
 
     Yields:
         tuple[str, Provider]: The name and provider of each item found.
+
+    Raises:
+        DITypeError: If the object is not an instance of Provider.
+
     """
     if not isinstance(obj, Provider):
         raise DITypeError(f"Object {type(obj).__qualname__} is not Provider")
@@ -303,6 +315,7 @@ def provide(obj: Any, /) -> Any:
 
     Raises:
         DITypeError: If the object is not an instance of Provider.
+
     """
     if not isinstance(obj, Provider):
         raise DITypeError(f"Object {type(obj).__qualname__} is not Provider")
@@ -334,6 +347,7 @@ async def aprovide(obj: Any, /) -> Any:
 
     Raises:
         DITypeError: If the object is not an instance of Provider.
+
     """
     if not isinstance(obj, Provider):
         raise DITypeError(f"Object {type(obj).__qualname__} is not Provider")
@@ -346,7 +360,15 @@ async def aprovide(obj: Any, /) -> Any:
 
 # START --------------------------------------------------------------------------------------------
 def start(obj: Any, /) -> None:
-    """Start the providers."""
+    """Start the providers.
+
+    Args:
+        obj: The Provider instance.
+
+    Raises:
+        DITypeError: If the object is not an instance of Provider.
+
+    """
     if not isinstance(obj, Provider):
         raise DITypeError(f"Object {type(obj).__qualname__} is not Provider")
 
@@ -357,7 +379,15 @@ def start(obj: Any, /) -> None:
 
 
 async def astart(obj: Any, /) -> None:
-    """Start the providers asynchronously."""
+    """Start the providers asynchronously.
+
+    Args:
+        obj: The Provider instance.
+
+    Raises:
+        DITypeError: If the object is not an instance of Provider.
+
+    """
     if not isinstance(obj, Provider):
         raise DITypeError(f"Object {type(obj).__qualname__} is not Provider")
 
@@ -369,7 +399,15 @@ async def astart(obj: Any, /) -> None:
 
 # SHUTDOWN -----------------------------------------------------------------------------------------
 def shutdown(obj: Any, /) -> None:
-    """Shutdown the providers."""
+    """Shutdown the providers.
+
+    Args:
+        obj: The Provider instance.
+
+    Raises:
+        DITypeError: If the object is not an instance of Provider.
+
+    """
     if not isinstance(obj, Provider):
         raise DITypeError(f"Object {type(obj).__qualname__} is not Provider")
 
@@ -380,7 +418,15 @@ def shutdown(obj: Any, /) -> None:
 
 
 async def ashutdown(obj: Any, /) -> None:
-    """Shutdown the providers asynchronously."""
+    """Shutdown the providers asynchronously.
+
+    Args:
+        obj: The Provider instance.
+
+    Raises:
+        DITypeError: If the object is not an instance of Provider.
+
+    """
     if not isinstance(obj, Provider):
         raise DITypeError(f"Object {type(obj).__qualname__} is not Provider")
 
@@ -424,6 +470,7 @@ def inject(func: Any | None = None, *, reuse_context: bool = True) -> Any:
 
     Returns:
         Any: A decorated function or an Injector instance.
+
     """
     injector = Injector(reuse_context=reuse_context)
 
@@ -458,6 +505,7 @@ def patch(
     Example:
         with patch(MainContainer.database, return_value=MockedDatabase())
             service = di.provide(MainContainer.service)
+
     """
     return Patch(
         provider=provider,

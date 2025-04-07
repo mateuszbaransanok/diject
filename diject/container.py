@@ -98,6 +98,7 @@ class Container(metaclass=MetaContainer):
 
         Yields:
             tuple[str, Provider]: The name and provider of each item found.
+
         """
         try:
             yield from cls.__travers__(
@@ -181,6 +182,7 @@ class Container(metaclass=MetaContainer):
 
         Yields:
             tuple[str, Provider]: The name and provider of each item found.
+
         """
         try:
             async for name, provider in cls.__atravers__(
