@@ -13,7 +13,7 @@ class Service:
         self.db = db
 ```
 
-To create instances of these classes, simply call their constructors:
+Classically, to create instances of these classes, simply call their constructors:
 
 ```python
 database = Database(
@@ -25,11 +25,11 @@ service = Service(
 )
 ```
 
-The above code creates a global variable holding the database instance.
+The above code creates a global variables holding the database and service instance.
 
 ## Introducing Diject
 
-Diject allows you to define a lifecycle for the database instance:
+Diject allows you to define a lifecycle for the objects:
 
 ```python
 database_provider = di.Singleton[Database](
@@ -70,8 +70,7 @@ Thanks to this design, you can inject this provider into other providers:
 di.Transient[Service](db=database)
 ```
 
-Besides `Singleton`, Diject also supports other lifecycle scopes such as `Transient`, `Scoped`,
-`Thread`, and `Resource`.
+Besides `Singleton`, Diject also supports other lifespans such as `Transient`, `Scoped`.
 
 ## Provider-Based Project Configuration
 
@@ -82,19 +81,9 @@ attributes and call providers:
 service_provider = di.Transient[Service](db=database_provider.get_session())
 ```
 
-## Automatic Conversion to Providers
-
-Be cautious when using Python objects within a block. Upon exiting the block, they are automatically
-converted into `ObjectProvider` for consistency. Similarly, lists, sets, tuples, and dictionaries
-are converted into `TransientProvider`, ensuring that any providers inside them are also recognized
-and supplied.
-
-Once the block ends, further operations on these objects are not possible as they have been
-transformed into Providers.
-
 ## Managing Providers
 
-To provide dependency, use `di.provide`:
+To provide dependency, use `di.provide` function:
 
 ```python
 database_dependency = di.provide[database_provider]
@@ -103,3 +92,21 @@ database_dependency = di.provide[database_provider]
 `database_dependency` is an instance of `Dependency`, enabling various operations on the given
 provider.
 
+Or inject to function:
+```python
+@di.inject
+def main(service: Service = MainContainer.service) -> None:
+    pass
+```
+
+
+## Automatic Conversion to Providers
+
+Be cautious when using Python objects within a container class-creation block.
+Upon exiting the block, they are automatically converted into `ObjectProvider` for consistency.
+Similarly, lists, tuples, and dictionaries are converted into
+`ListProvider`, `TupleProvider` and `DictProvider`,
+ensuring that any providers inside them are also discovered.
+
+Once the block ends, further operations on these objects are not possible as they have been
+transformed into Providers.

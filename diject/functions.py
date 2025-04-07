@@ -19,6 +19,17 @@ TProvider = TypeVar("TProvider", bound=Provider)
 
 # ALIAS --------------------------------------------------------------------------------------------
 def alias(obj: Any, /) -> str:
+    """Retrieve the alias of a Provider object.
+
+    Args:
+        obj (Any): The object to retrieve the alias from. Must be an instance of Provider.
+
+    Returns:
+        str: The alias associated with the Provider.
+
+    Raises:
+        DITypeError: If the provided object is not an instance of Provider.
+    """
     if not isinstance(obj, Provider):
         raise DITypeError(f"Object {type(obj).__qualname__} is not Provider")
     return obj.__alias__
@@ -26,6 +37,22 @@ def alias(obj: Any, /) -> str:
 
 # STATUS -------------------------------------------------------------------------------------------
 def status(obj: Any, /) -> Status:
+    """Retrieve the status of a Provider object.
+
+    The status indicates the operational state of the Provider and can be one of the following:
+        - 'idle': The Provider is not currently active.
+        - 'running': The Provider is currently active and operating.
+        - 'corrupted': The Provider encountered an error or is in an invalid state.
+
+    Args:
+        obj (Any): The object to retrieve the status from. Must be an instance of Provider.
+
+    Returns:
+        Status: The current status of the Provider.
+
+    Raises:
+        DITypeError: If the provided object is not an instance of Provider.
+    """
     if not isinstance(obj, Provider):
         raise DITypeError(f"Object {type(obj).__qualname__} is not Provider")
     return obj.__status__
@@ -60,6 +87,16 @@ def travers(
     recursive: bool = False,
     only_selected: bool = False,
 ) -> Any:
+    """Traverses the provider and its sub-providers.
+
+    Args:
+        types: The types of providers to traverse.
+        recursive: Whether to traverse recursively.
+        only_selected: Whether to include only selected providers.
+
+    Yields:
+        tuple[str, Provider]: The name and provider of each item found.
+    """
     if not isinstance(obj, Provider):
         raise DITypeError(f"Object {type(obj).__qualname__} is not Provider")
 
@@ -154,6 +191,16 @@ async def atravers(
     recursive: bool = False,
     only_selected: bool = False,
 ) -> Any:
+    """Traverses the provider asynchronously and its sub-providers.
+
+    Args:
+        types: The types of providers to traverse.
+        recursive: Whether to traverse recursively.
+        only_selected: Whether to include only selected providers.
+
+    Yields:
+        tuple[str, Provider]: The name and provider of each item found.
+    """
     if not isinstance(obj, Provider):
         raise DITypeError(f"Object {type(obj).__qualname__} is not Provider")
 
@@ -246,6 +293,17 @@ def provide(obj: T, /) -> T:
 
 
 def provide(obj: Any, /) -> Any:
+    """Provide a value from a Provider object.
+
+    Args:
+        obj (Any): Provider instance.
+
+    Returns:
+        Any: Provided value.
+
+    Raises:
+        DITypeError: If the object is not an instance of Provider.
+    """
     if not isinstance(obj, Provider):
         raise DITypeError(f"Object {type(obj).__qualname__} is not Provider")
 
@@ -266,6 +324,17 @@ async def aprovide(obj: T, /) -> T:
 
 
 async def aprovide(obj: Any, /) -> Any:
+    """Provide a value from a Provider object asynchronously.
+
+    Args:
+        obj (Any): Provider instance.
+
+    Returns:
+        Any: Provided value.
+
+    Raises:
+        DITypeError: If the object is not an instance of Provider.
+    """
     if not isinstance(obj, Provider):
         raise DITypeError(f"Object {type(obj).__qualname__} is not Provider")
 
@@ -277,6 +346,7 @@ async def aprovide(obj: Any, /) -> Any:
 
 # START --------------------------------------------------------------------------------------------
 def start(obj: Any, /) -> None:
+    """Start the providers."""
     if not isinstance(obj, Provider):
         raise DITypeError(f"Object {type(obj).__qualname__} is not Provider")
 
@@ -287,6 +357,7 @@ def start(obj: Any, /) -> None:
 
 
 async def astart(obj: Any, /) -> None:
+    """Start the providers asynchronously."""
     if not isinstance(obj, Provider):
         raise DITypeError(f"Object {type(obj).__qualname__} is not Provider")
 
@@ -298,6 +369,7 @@ async def astart(obj: Any, /) -> None:
 
 # SHUTDOWN -----------------------------------------------------------------------------------------
 def shutdown(obj: Any, /) -> None:
+    """Shutdown the providers."""
     if not isinstance(obj, Provider):
         raise DITypeError(f"Object {type(obj).__qualname__} is not Provider")
 
@@ -308,6 +380,7 @@ def shutdown(obj: Any, /) -> None:
 
 
 async def ashutdown(obj: Any, /) -> None:
+    """Shutdown the providers asynchronously."""
     if not isinstance(obj, Provider):
         raise DITypeError(f"Object {type(obj).__qualname__} is not Provider")
 
@@ -331,6 +404,27 @@ def inject(*, reuse_context: bool = True) -> Injector:
 
 
 def inject(func: Any | None = None, *, reuse_context: bool = True) -> Any:
+    """Dependency injection decorator or context creator.
+
+    This function can be used either as:
+        - A decorator to automatically inject dependencies into a callable.
+        - A context creator to return an Injector instance.
+
+    Example usage:
+        @di.inject
+        def function(service: Service = MainContainer.service): ...
+
+        # To create a context:
+        with @di.inject:
+            service = di.provide(MainContainer.service)
+
+    Args:
+        func (Any, optional): The target function to wrap. If None, returns an Injector instance.
+        reuse_context (bool, optional): Whether to reuse the injection context. Defaults to True.
+
+    Returns:
+        Any: A decorated function or an Injector instance.
+    """
     injector = Injector(reuse_context=reuse_context)
 
     if func is None:
@@ -346,6 +440,25 @@ def patch(
     side_effect: Any = None,
     **mock_kwargs: mock.Mock,
 ) -> Patch:
+    """Create a patch for a given provider, useful for testing or overriding behavior.
+
+    This function wraps the target provider with a mock-like interface, allowing you to specify
+    a return value, side effect, or any additional mock configuration.
+
+    Args:
+        provider (Any): The target provider to patch (typically a dependency or service).
+        return_value (Any, optional): The value to return when the patched provider is called.
+            Defaults to mock.DEFAULT.
+        side_effect (Any, optional): A function, exception, or iterable to be called/raised per call.
+        **mock_kwargs (mock.Mock): Additional keyword arguments to customize the mock behavior.
+
+    Returns:
+        Patch: A Patch object that wraps and overrides the specified provider.
+
+    Example:
+        with patch(MainContainer.database, return_value=MockedDatabase())
+            service = di.provide(MainContainer.service)
+    """
     return Patch(
         provider=provider,
         return_value=return_value,

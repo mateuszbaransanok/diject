@@ -3,9 +3,9 @@ site_name: diject
 nav:
   - Get started: get_started.md
   - Concept: concept.md
+  - Container: container.md
   - Providers: providers.md
-  - Custom provider: custom_provider.md
-  - Examples: examples.md
+  - Tools: tools.md
 
 theme: readthedocs
 

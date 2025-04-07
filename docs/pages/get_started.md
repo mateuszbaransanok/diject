@@ -52,7 +52,7 @@ my_project/
 ```
 
 With this architecture, **diject** allows you to register and inject dependencies at the
-infrastructure level while keeping your business logic independent from specific implementations.
+infrastructure level while keeping your business logic independent of specific implementations.
 
 ## Creating a `containers` Folder
 

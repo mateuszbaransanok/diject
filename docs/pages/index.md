@@ -64,7 +64,7 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    main()
+    main()  # <-- hardcoded dependencies
 ```
 
 This implementation is short and quick to set up, making it easy to get started. However, as the
@@ -109,7 +109,7 @@ if __name__ == "__main__":
     )
 
     main(
-        service=service,  # <-- injecting dependency
+        service=service,  # <-- dependency is injected manually
     )
 ```
 
